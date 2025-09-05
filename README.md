@@ -4,9 +4,18 @@ Chrome extension for instant bug reporting. Take screenshots and create GitHub i
 
 ## ⚡ Quick Start
 
-1. **Install**: Load unpacked in `chrome://extensions/` (enable Developer mode)
-2. **Setup**: Click extension icon → enter GitHub token + repository
-3. **Use**: Press `Ctrl+Shift+B` on any website → fill form → create issue
+### Installation
+1. **Download**: Click "Code" → "Download ZIP" sur GitHub
+2. **Extract**: Dézippe le fichier dans un dossier (ex: `Downloads/gissues/`)
+3. **Chrome**: Va sur `chrome://extensions/`
+4. **Developer mode**: Active le mode développeur (toggle en haut à droite)
+5. **Load**: Clique "Load unpacked" → sélectionne le dossier `gissues/`
+
+### Configuration
+1. **Setup**: Click extension icon → enter GitHub token + repository
+2. **Use**: Press `Ctrl+Shift+B` on any website → fill form → create issue
+
+> ⚠️ **Important** : Il faut dézipper le fichier ! Chrome ne peut pas charger directement un fichier ZIP.
 
 ## 🔧 Setup
 
