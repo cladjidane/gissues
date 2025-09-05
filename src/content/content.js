@@ -83,6 +83,88 @@ class GissuesModal {
         }
         .gissues-input.error { border-color: #ef4444; }
         .gissues-textarea { resize: vertical; min-height: 80px; }
+        
+        /* Voice Input Styles */
+        .gissues-voice-container {
+          margin-top: 12px;
+          padding: 12px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+        }
+        
+        .gissues-voice-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 12px;
+          font-size: 14px;
+          font-weight: 500;
+          color: #475569;
+        }
+        
+        .gissues-voice-controls {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        
+        .gissues-voice-btn {
+          padding: 8px 16px;
+          border: none;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        
+        .gissues-voice-btn.record {
+          background: #ef4444;
+          color: white;
+        }
+        
+        .gissues-voice-btn.record:hover {
+          background: #dc2626;
+        }
+        
+        .gissues-voice-btn.recording {
+          background: #dc2626;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .gissues-voice-btn.stop {
+          background: #6b7280;
+          color: white;
+        }
+        
+        .gissues-voice-btn.processing {
+          background: #3b82f6;
+          color: white;
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+        
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
+        
+        .gissues-voice-status {
+          font-size: 12px;
+          color: #64748b;
+          font-style: italic;
+        }
+        
+        .gissues-voice-duration {
+          font-size: 12px;
+          color: #3b82f6;
+          font-weight: 500;
+        }
         .gissues-metadata { 
           background: #f9fafb; padding: 12px; border-radius: 6px; 
           font-size: 12px; color: #6b7280; margin-bottom: 16px;
@@ -174,6 +256,23 @@ class GissuesModal {
                 class="gissues-textarea"
                 placeholder="Détails supplémentaires sur ce que vous attendiez vs ce que vous voyez..."
               ></textarea>
+              
+              <div class="gissues-voice-container">
+                <div class="gissues-voice-header">
+                  🎤 Dictée vocale
+                </div>
+                <div class="gissues-voice-controls">
+                  <button id="gissues-voice-btn" class="gissues-voice-btn record" type="button">
+                    🔴 Enregistrer
+                  </button>
+                  <span id="gissues-voice-status" class="gissues-voice-status">
+                    Cliquez pour commencer l'enregistrement
+                  </span>
+                  <span id="gissues-voice-duration" class="gissues-voice-duration" style="display: none;">
+                    0:00
+                  </span>
+                </div>
+              </div>
             </div>
             
             <div id="gissues-metadata" class="gissues-metadata">
@@ -418,6 +517,175 @@ class GissuesModal {
         if (submitBtn) submitBtn.disabled = !titleInput.value.trim();
       });
     }
+
+    // Voice input functionality
+    this.setupVoiceInput();
+  }
+
+  setupVoiceInput() {
+    const voiceBtn = this.shadowRoot.getElementById('gissues-voice-btn');
+    const voiceStatus = this.shadowRoot.getElementById('gissues-voice-status');
+    const voiceDuration = this.shadowRoot.getElementById('gissues-voice-duration');
+    const descriptionTextarea = this.shadowRoot.getElementById('gissues-description');
+    
+    if (!voiceBtn || !voiceStatus || !voiceDuration || !descriptionTextarea) return;
+
+    // Check Web Speech API support
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      voiceStatus.textContent = 'Reconnaissance vocale non supportée dans ce navigateur';
+      voiceBtn.disabled = true;
+      return;
+    }
+
+    // Initialize speech recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    this.recognition = new SpeechRecognition();
+    
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
+    this.recognition.lang = 'fr-FR';
+    
+    // State variables
+    this.isRecording = false;
+    this.recordingStartTime = null;
+    this.durationInterval = null;
+    this.finalTranscript = '';
+    
+    // Event listeners
+    voiceBtn.addEventListener('click', () => {
+      if (this.isRecording) {
+        this.stopRecording();
+      } else {
+        this.startRecording();
+      }
+    });
+
+    // Speech recognition events
+    this.recognition.onstart = () => {
+      console.log('Voice recognition started');
+    };
+
+    this.recognition.onresult = (event) => {
+      let interimTranscript = '';
+      let finalTranscript = this.finalTranscript;
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      this.finalTranscript = finalTranscript;
+      
+      // Update textarea with current transcription
+      const currentText = descriptionTextarea.value;
+      const newText = finalTranscript + interimTranscript;
+      
+      if (newText.trim() !== currentText.trim()) {
+        descriptionTextarea.value = finalTranscript + interimTranscript;
+      }
+    };
+
+    this.recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      this.stopRecording();
+      voiceStatus.textContent = 'Erreur de reconnaissance: ' + event.error;
+    };
+
+    this.recognition.onend = () => {
+      if (this.isRecording) {
+        // Restart if still in recording mode (for continuous recording)
+        try {
+          this.recognition.start();
+        } catch (e) {
+          console.log('Recognition restart failed:', e);
+          this.stopRecording();
+        }
+      }
+    };
+  }
+
+  startRecording() {
+    const voiceBtn = this.shadowRoot.getElementById('gissues-voice-btn');
+    const voiceStatus = this.shadowRoot.getElementById('gissues-voice-status');
+    const voiceDuration = this.shadowRoot.getElementById('gissues-voice-duration');
+    
+    if (!this.recognition) return;
+
+    try {
+      this.isRecording = true;
+      this.recordingStartTime = Date.now();
+      this.finalTranscript = '';
+      
+      // Update UI
+      voiceBtn.className = 'gissues-voice-btn recording';
+      voiceBtn.innerHTML = '⏹️ Arrêter';
+      voiceStatus.textContent = 'Enregistrement en cours...';
+      voiceDuration.style.display = 'inline';
+      
+      // Start duration timer
+      this.durationInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - this.recordingStartTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        voiceDuration.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }, 1000);
+      
+      // Start recognition
+      this.recognition.start();
+      
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      this.stopRecording();
+      voiceStatus.textContent = 'Erreur lors du démarrage de l\'enregistrement';
+    }
+  }
+
+  stopRecording() {
+    const voiceBtn = this.shadowRoot.getElementById('gissues-voice-btn');
+    const voiceStatus = this.shadowRoot.getElementById('gissues-voice-status');
+    const voiceDuration = this.shadowRoot.getElementById('gissues-voice-duration');
+    const descriptionTextarea = this.shadowRoot.getElementById('gissues-description');
+    
+    this.isRecording = false;
+    
+    // Stop recognition
+    if (this.recognition) {
+      this.recognition.stop();
+    }
+    
+    // Clear duration timer
+    if (this.durationInterval) {
+      clearInterval(this.durationInterval);
+      this.durationInterval = null;
+    }
+    
+    // Update UI
+    voiceBtn.className = 'gissues-voice-btn processing';
+    voiceBtn.innerHTML = '⏳ Traitement...';
+    voiceStatus.textContent = 'Finalisation de la transcription...';
+    
+    // Finalize transcription after a short delay
+    setTimeout(() => {
+      if (this.finalTranscript) {
+        descriptionTextarea.value = this.finalTranscript.trim();
+        voiceStatus.textContent = 'Transcription terminée avec succès';
+      } else {
+        voiceStatus.textContent = 'Aucun texte détecté';
+      }
+      
+      // Reset button
+      voiceBtn.className = 'gissues-voice-btn record';
+      voiceBtn.innerHTML = '🔴 Enregistrer';
+      voiceDuration.style.display = 'none';
+      voiceDuration.textContent = '0:00';
+      
+      // Reset for next recording
+      this.finalTranscript = '';
+    }, 1000);
   }
 
   disablePageElements() {
