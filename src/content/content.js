@@ -17,66 +17,158 @@ class GissuesModal {
     this.shadowRoot = this.container.attachShadow({ mode: 'closed' });
     
     this.shadowRoot.innerHTML = `
-      <link href="https://cdn.tailwindcss.com/3.3.0/tailwind.min.css" rel="stylesheet">
-      <div id="gissues-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-[999999] hidden items-center justify-center">
-        <div id="gissues-modal" class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-          <div class="p-6">
-            <div class="flex justify-between items-center mb-4">
-              <div class="flex items-center">
-                <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center mr-3 text-white text-lg">🐛</div>
-                <h2 class="text-xl font-bold text-gray-800">Report Visual Bug</h2>
-              </div>
-              <button id="gissues-close" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+      <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        .gissues-overlay { 
+          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+          background: rgba(0, 0, 0, 0.5); z-index: 999999; 
+          display: none; align-items: center; justify-content: center;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .gissues-overlay.show { display: flex; }
+        .gissues-modal { 
+          background: white; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); 
+          max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; margin: 20px;
+        }
+        .gissues-header { 
+          display: flex; justify-content: space-between; align-items: center; 
+          padding: 24px 24px 16px 24px; border-bottom: 1px solid #e5e7eb;
+        }
+        .gissues-header h2 { 
+          font-size: 20px; font-weight: 700; color: #1f2937; margin: 0;
+          display: flex; align-items: center;
+        }
+        .gissues-logo { 
+          width: 32px; height: 32px; 
+          background: linear-gradient(135deg, #6366F1, #8B5CF6); 
+          border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+          margin-right: 12px; color: white; font-size: 16px;
+        }
+        .gissues-close { 
+          font-size: 24px; color: #6b7280; cursor: pointer; 
+          background: none; border: none; padding: 4px; line-height: 1;
+        }
+        .gissues-close:hover { color: #374151; }
+        .gissues-content { padding: 24px; }
+        .gissues-screenshot { 
+          width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; 
+          margin-bottom: 16px; max-height: 200px; object-fit: contain;
+        }
+        .gissues-form-group { margin-bottom: 16px; }
+        .gissues-label { 
+          display: block; font-size: 14px; margin-bottom: 6px; 
+          font-weight: 500; color: #374151;
+        }
+        .gissues-input, .gissues-textarea { 
+          width: 100%; padding: 8px 12px; border: 2px solid #e5e7eb; 
+          border-radius: 6px; font-size: 14px; font-family: inherit;
+        }
+        .gissues-input:focus, .gissues-textarea:focus { 
+          outline: none; border-color: #3b82f6; 
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .gissues-input.error { border-color: #ef4444; }
+        .gissues-textarea { resize: vertical; min-height: 80px; }
+        .gissues-metadata { 
+          background: #f9fafb; padding: 12px; border-radius: 6px; 
+          font-size: 12px; color: #6b7280; margin-bottom: 16px;
+        }
+        .gissues-metadata strong { color: #374151; }
+        .gissues-actions { 
+          display: flex; justify-content: flex-end; gap: 12px; 
+          padding-top: 16px; border-top: 1px solid #e5e7eb;
+        }
+        .gissues-button { 
+          padding: 10px 16px; border: none; border-radius: 6px; 
+          font-size: 14px; font-weight: 500; cursor: pointer; 
+          transition: background-color 0.2s;
+        }
+        .gissues-button.secondary { 
+          background: #f3f4f6; color: #374151; 
+        }
+        .gissues-button.secondary:hover { background: #e5e7eb; }
+        .gissues-button.primary { 
+          background: #3b82f6; color: white; 
+        }
+        .gissues-button.primary:hover { background: #2563eb; }
+        .gissues-button:disabled { 
+          opacity: 0.5; cursor: not-allowed; 
+        }
+        .gissues-loading { 
+          display: none; text-align: center; padding: 16px;
+        }
+        .gissues-loading.show { display: block; }
+        .gissues-spinner { 
+          display: inline-block; width: 32px; height: 32px; 
+          border: 3px solid #e5e7eb; border-top: 3px solid #3b82f6; 
+          border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .gissues-success { 
+          text-align: center; padding: 32px; 
+        }
+        .gissues-success-icon { 
+          width: 64px; height: 64px; background: #d1fae5; 
+          border-radius: 50%; display: flex; align-items: center; justify-content: center;
+          margin: 0 auto 16px; font-size: 24px; color: #059669;
+        }
+      </style>
+      <div id="gissues-overlay" class="gissues-overlay">
+        <div id="gissues-modal" class="gissues-modal">
+          <div class="gissues-header">
+            <h2>
+              <div class="gissues-logo">🐛</div>
+              Signaler un Bug Visuel
+            </h2>
+            <button id="gissues-close" class="gissues-close">&times;</button>
+          </div>
+          
+          <div class="gissues-content">
+            <div class="gissues-form-group">
+              <img id="gissues-screenshot" class="gissues-screenshot" alt="Capture d'écran">
             </div>
             
-            <div class="mb-4">
-              <img id="gissues-screenshot" class="w-full rounded border" alt="Screenshot">
+            <div class="gissues-form-group">
+              <label for="gissues-title" class="gissues-label">
+                Titre du Bug *
+              </label>
+              <input 
+                type="text" 
+                id="gissues-title" 
+                class="gissues-input"
+                placeholder="Description brève du problème"
+                required
+              >
             </div>
             
-            <div class="space-y-4">
-              <div>
-                <label for="gissues-title" class="block text-sm font-medium text-gray-700 mb-1">
-                  Bug Title *
-                </label>
-                <input 
-                  type="text" 
-                  id="gissues-title" 
-                  class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Brief description of the issue"
-                  required
-                >
-              </div>
-              
-              <div>
-                <label for="gissues-description" class="block text-sm font-medium text-gray-700 mb-1">
-                  Description (optional)
-                </label>
-                <textarea 
-                  id="gissues-description" 
-                  rows="4" 
-                  class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Additional details about what you expected vs what you see..."
-                ></textarea>
-              </div>
-              
-              <div id="gissues-metadata" class="bg-gray-50 p-3 rounded text-sm text-gray-600">
-                <strong>Technical Info:</strong>
-                <div id="gissues-tech-info"></div>
-              </div>
+            <div class="gissues-form-group">
+              <label for="gissues-description" class="gissues-label">
+                Description (optionnelle)
+              </label>
+              <textarea 
+                id="gissues-description" 
+                class="gissues-textarea"
+                placeholder="Détails supplémentaires sur ce que vous attendiez vs ce que vous voyez..."
+              ></textarea>
             </div>
             
-            <div class="flex justify-end space-x-3 mt-6">
-              <button id="gissues-cancel" class="px-4 py-2 text-gray-600 hover:text-gray-800">
-                Cancel
+            <div id="gissues-metadata" class="gissues-metadata">
+              <strong>Informations Techniques :</strong>
+              <div id="gissues-tech-info"></div>
+            </div>
+            
+            <div class="gissues-actions">
+              <button id="gissues-cancel" class="gissues-button secondary">
+                Annuler
               </button>
-              <button id="gissues-submit" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50">
-                Create Issue
+              <button id="gissues-submit" class="gissues-button primary">
+                Créer l'Issue
               </button>
             </div>
             
-            <div id="gissues-loading" class="hidden text-center py-4">
-              <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <div class="mt-2 text-gray-600">Creating GitHub issue...</div>
+            <div id="gissues-loading" class="gissues-loading">
+              <div class="gissues-spinner"></div>
+              <div>Création de l'issue GitHub...</div>
             </div>
           </div>
         </div>
@@ -129,8 +221,7 @@ class GissuesModal {
 
     await this.updateTechnicalInfo();
 
-    overlay.classList.remove('hidden');
-    overlay.classList.add('flex');
+    overlay.classList.add('show');
     this.isVisible = true;
 
     setTimeout(() => titleInput.focus(), 100);
@@ -138,8 +229,7 @@ class GissuesModal {
 
   hide() {
     const overlay = this.shadowRoot.getElementById('gissues-overlay');
-    overlay.classList.add('hidden');
-    overlay.classList.remove('flex');
+    overlay.classList.remove('show');
     this.isVisible = false;
     this.currentScreenshot = null;
   }
@@ -234,36 +324,39 @@ class GissuesModal {
     const submitBtn = this.shadowRoot.getElementById('gissues-submit');
     
     if (show) {
-      loading.classList.remove('hidden');
+      loading.classList.add('show');
       submitBtn.disabled = true;
     } else {
-      loading.classList.add('hidden');
+      loading.classList.remove('show');
       submitBtn.disabled = false;
     }
   }
 
   showSuccess(issueUrl) {
-    // Replace alert with elegant success notification
     const successHtml = `
-      <div class="text-center py-8">
-        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <div class="text-green-600 text-2xl">✓</div>
-        </div>
-        <h3 class="text-lg font-bold text-gray-800 mb-2">Bug Report Created Successfully!</h3>
-        <p class="text-gray-600 mb-4">Your issue has been created with screenshot and technical details.</p>
-        <div class="space-y-3">
-          <a href="${issueUrl}" target="_blank" class="block w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors">
-            View on GitHub →
+      <div class="gissues-success">
+        <div class="gissues-success-icon">✓</div>
+        <h3 style="font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">
+          Rapport de Bug Créé avec Succès !
+        </h3>
+        <p style="color: #6b7280; margin-bottom: 20px;">
+          Votre issue a été créée avec la capture d'écran et les détails techniques.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <a href="${issueUrl}" target="_blank" 
+             class="gissues-button primary" 
+             style="text-decoration: none; text-align: center; display: block;">
+            Voir sur GitHub →
           </a>
-          <button id="gissues-close-success" class="w-full bg-gray-100 text-gray-600 py-2 px-4 rounded hover:bg-gray-200 transition-colors">
-            Close
+          <button id="gissues-close-success" class="gissues-button secondary">
+            Fermer
           </button>
         </div>
       </div>
     `;
     
     const modalContent = this.shadowRoot.querySelector('#gissues-modal');
-    modalContent.innerHTML = `<div class="p-6">${successHtml}</div>`;
+    modalContent.innerHTML = successHtml;
     
     // Add close handler
     this.shadowRoot.getElementById('gissues-close-success').addEventListener('click', () => this.hide());
