@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const statusDiv = document.getElementById('status');
 
   await loadSettings();
+  await loadVersionInfo();
 
   form.addEventListener('submit', handleSaveSettings);
   testConnectionBtn.addEventListener('click', handleTestConnection);
@@ -167,5 +168,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function hideStatus() {
     statusDiv.style.display = 'none';
+  }
+
+  async function loadVersionInfo() {
+    try {
+      const manifest = chrome.runtime.getManifest();
+      const version = manifest.version;
+      const versionSpan = document.getElementById('version-info');
+      
+      if (versionSpan) {
+        versionSpan.textContent = `v${version}`;
+        versionSpan.title = `Gissues version ${version}`;
+      }
+    } catch (error) {
+      console.error('Error loading version info:', error);
+    }
   }
 });

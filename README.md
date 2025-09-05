@@ -68,6 +68,27 @@ gissues/
 - Manifest V3 compliant
 - No external dependencies
 
+## 🚀 Releases
+
+To create a new release:
+
+```bash
+# Patch version (1.0.0 → 1.0.1)
+./release.sh patch
+
+# Minor version (1.0.0 → 1.1.0)  
+./release.sh minor
+
+# Major version (1.0.0 → 2.0.0)
+./release.sh major
+```
+
+The script automatically:
+- Updates `manifest.json` version
+- Creates git tag with release notes
+- Pushes to GitHub with tags
+- Opens GitHub releases page
+
 ## 🤝 Contributing
 
 Issues and pull requests welcome! Please check existing issues first.

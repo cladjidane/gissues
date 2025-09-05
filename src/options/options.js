@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const domainMappingsDiv = document.getElementById('domainMappings');
 
   await loadAllSettings();
+  loadVersionInfo();
 
   githubForm.addEventListener('submit', handleSaveGithubSettings);
   domainForm.addEventListener('submit', handleAddDomainMapping);
@@ -265,6 +266,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       setTimeout(() => {
         element.style.display = 'none';
       }, 3000);
+    }
+  }
+
+  function loadVersionInfo() {
+    try {
+      const manifest = chrome.runtime.getManifest();
+      const version = manifest.version;
+      const versionSpan = document.getElementById('footer-version');
+      
+      if (versionSpan) {
+        versionSpan.textContent = `v${version}`;
+      }
+    } catch (error) {
+      console.error('Error loading version info:', error);
     }
   }
 });
