@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const githubTokenInput = document.getElementById('githubToken');
   const defaultRepoInput = document.getElementById('defaultRepo');
   const testConnectionBtn = document.getElementById('testConnection');
+  const customizeShortcutBtn = document.getElementById('customize-shortcut');
   const saveSettingsBtn = document.getElementById('saveSettings');
   const takeScreenshotBtn = document.getElementById('takeScreenshotNow');
   const statusDiv = document.getElementById('status');
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   testConnectionBtn.addEventListener('click', handleTestConnection);
   takeScreenshotBtn.addEventListener('click', handleTakeScreenshot);
   extensionRefreshBtn.addEventListener('click', handleExtensionRefresh);
+  customizeShortcutBtn.addEventListener('click', handleCustomizeShortcut);
 
   async function loadSettings() {
     try {
@@ -225,5 +227,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => {
       window.close();
     }, 500);
+  }
+
+  function handleCustomizeShortcut(e) {
+    e.preventDefault();
+    
+    // Ouvre la page des raccourcis Chrome
+    chrome.tabs.create({
+      url: 'chrome://extensions/shortcuts'
+    });
+    
+    // Affiche un message d'aide
+    const statusEl = document.getElementById('shortcut-status');
+    statusEl.innerHTML = '<span style="color: #059669;">📄 Page des raccourcis ouverte !</span>';
+    statusEl.style.display = 'block';
+    
+    setTimeout(() => {
+      statusEl.style.display = 'none';
+    }, 3000);
+    
+    window.close();
+  }
+
+  // Diagnostic du raccourci au chargement
+  checkShortcutStatus();
+
+  async function checkShortcutStatus() {
+    try {
+      const commands = await chrome.commands.getAll();
+      const takeScreenshotCommand = commands.find(cmd => cmd.name === 'take-screenshot');
+      
+      const statusEl = document.getElementById('shortcut-status');
+      
+      if (takeScreenshotCommand && takeScreenshotCommand.shortcut) {
+        // Raccourci configuré
+        statusEl.innerHTML = `✅ Raccourci actif: <strong>${takeScreenshotCommand.shortcut}</strong>`;
+        statusEl.style.color = '#059669';
+      } else {
+        // Pas de raccourci configuré
+        statusEl.innerHTML = '⚠️ <a href="#" id="fix-shortcut" style="color: #f59e0b;">Raccourci non configuré - Cliquez pour corriger</a>';
+        statusEl.style.color = '#f59e0b';
+        
+        // Handler pour corriger le raccourci
+        statusEl.querySelector('#fix-shortcut').addEventListener('click', (e) => {
+          e.preventDefault();
+          handleCustomizeShortcut(e);
+        });
+      }
+      
+      statusEl.style.display = 'block';
+      
+    } catch (error) {
+      console.error('Error checking shortcut status:', error);
+    }
   }
 });
