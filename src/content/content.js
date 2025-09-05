@@ -83,6 +83,73 @@ class GissuesModal {
         }
         .gissues-input.error { border-color: #ef4444; }
         .gissues-textarea { resize: vertical; min-height: 80px; }
+        
+        .gissues-voice-status-container {
+          padding: 8px 0;
+          text-align: center;
+          border-top: 1px solid #e5e7eb;
+          margin-top: 12px;
+        }
+        
+        .gissues-voice-feedback {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+        }
+        
+        .gissues-input-with-voice {
+          position: relative;
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+        }
+        
+        .gissues-input-with-voice .gissues-input,
+        .gissues-input-with-voice .gissues-textarea {
+          flex: 1;
+        }
+        
+        .gissues-voice-icon {
+          padding: 6px 8px;
+          border: 1px solid #d1d5db;
+          border-radius: 4px;
+          background: #f9fafb;
+          color: #6b7280;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-size: 14px;
+          line-height: 1;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+        
+        .gissues-voice-icon:hover {
+          background: #f3f4f6;
+          border-color: #9ca3af;
+          color: #374151;
+        }
+        
+        .gissues-voice-icon.recording {
+          background: #fef2f2;
+          border-color: #fca5a5;
+          color: #dc2626;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .gissues-voice-icon.processing {
+          background: #eff6ff;
+          border-color: #93c5fd;
+          color: #2563eb;
+          cursor: not-allowed;
+          opacity: 0.7;
+        }
+        
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
         .gissues-metadata { 
           background: #f9fafb; padding: 12px; border-radius: 6px; 
           font-size: 12px; color: #6b7280; margin-bottom: 16px;
@@ -156,24 +223,34 @@ class GissuesModal {
               <label for="gissues-title" class="gissues-label">
                 Titre du Bug *
               </label>
-              <input 
-                type="text" 
-                id="gissues-title" 
-                class="gissues-input"
-                placeholder="Description brève du problème"
-                required
-              >
+              <div class="gissues-input-with-voice">
+                <input 
+                  type="text" 
+                  id="gissues-title" 
+                  class="gissues-input"
+                  placeholder="Description brève du problème"
+                  required
+                >
+                <button id="gissues-voice-title" class="gissues-voice-icon" type="button" title="Dicter le titre">
+                  🎤
+                </button>
+              </div>
             </div>
             
             <div class="gissues-form-group">
               <label for="gissues-description" class="gissues-label">
                 Description (optionnelle)
               </label>
-              <textarea 
-                id="gissues-description" 
-                class="gissues-textarea"
-                placeholder="Détails supplémentaires sur ce que vous attendiez vs ce que vous voyez..."
-              ></textarea>
+              <div class="gissues-input-with-voice">
+                <textarea 
+                  id="gissues-description" 
+                  class="gissues-textarea"
+                  placeholder="Détails supplémentaires sur ce que vous attendiez vs ce que vous voyez..."
+                ></textarea>
+                <button id="gissues-voice-description" class="gissues-voice-icon" type="button" title="Dicter la description">
+                  🎤
+                </button>
+              </div>
             </div>
             
             <div id="gissues-metadata" class="gissues-metadata">
@@ -188,6 +265,13 @@ class GissuesModal {
               <button id="gissues-submit" class="gissues-button primary">
                 Créer l'Issue
               </button>
+            </div>
+            
+            <div id="gissues-voice-status-container" class="gissues-voice-status-container" style="display: none;">
+              <div class="gissues-voice-feedback">
+                <span id="gissues-voice-status" class="gissues-voice-status">Prêt à enregistrer</span>
+                <span id="gissues-voice-duration" class="gissues-voice-duration">0:00</span>
+              </div>
             </div>
             
             <div id="gissues-loading" class="gissues-loading">
@@ -228,7 +312,8 @@ class GissuesModal {
       submitBtn.disabled = !titleInput.value.trim();
     });
 
-    // Focus trapping and keyboard handling
+    this.setupVoiceInput();
+
     this.shadowRoot.addEventListener('keydown', (e) => {
       if (!this.isVisible) return;
       
@@ -418,6 +503,213 @@ class GissuesModal {
         if (submitBtn) submitBtn.disabled = !titleInput.value.trim();
       });
     }
+
+  }
+
+  setupVoiceInput() {
+    const voiceTitleBtn = this.shadowRoot.getElementById('gissues-voice-title');
+    const voiceDescriptionBtn = this.shadowRoot.getElementById('gissues-voice-description');
+    const voiceStatus = this.shadowRoot.getElementById('gissues-voice-status');
+    const voiceDuration = this.shadowRoot.getElementById('gissues-voice-duration');
+    const voiceStatusContainer = this.shadowRoot.getElementById('gissues-voice-status-container');
+    
+    const titleInput = this.shadowRoot.getElementById('gissues-title');
+    const descriptionTextarea = this.shadowRoot.getElementById('gissues-description');
+    
+    if (!voiceTitleBtn || !voiceDescriptionBtn || !voiceStatus || !voiceDuration || !titleInput || !descriptionTextarea) {
+      return;
+    }
+    
+    this.currentVoiceButton = null;
+    this.currentTargetElement = null;
+
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      voiceStatus.textContent = 'Reconnaissance vocale non supportée dans ce navigateur';
+      voiceTitleBtn.disabled = true;
+      voiceDescriptionBtn.disabled = true;
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    this.recognition = new SpeechRecognition();
+    
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
+    this.recognition.lang = 'fr-FR';
+    
+    this.isRecording = false;
+    this.recordingStartTime = null;
+    this.durationInterval = null;
+    this.finalTranscript = '';
+    
+    voiceTitleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (this.isRecording) {
+        this.stopRecording();
+      } else {
+        this.startRecording(voiceTitleBtn, titleInput, 'titre');
+      }
+    });
+
+    voiceDescriptionBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (this.isRecording) {
+        this.stopRecording();
+      } else {
+        this.startRecording(voiceDescriptionBtn, descriptionTextarea, 'description');
+      }
+    });
+
+    this.recognition.onstart = () => {};
+
+    this.recognition.onresult = (event) => {
+      let interimTranscript = '';
+      let finalTranscript = this.finalTranscript;
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      this.finalTranscript = finalTranscript;
+      
+      const allTranscript = finalTranscript + interimTranscript;
+      
+      if (this.currentTargetElement && this.currentFieldName === 'titre') {
+        const urlPrefix = this.getUrlPath();
+        const newValue = urlPrefix + allTranscript;
+        if (this.currentTargetElement.value !== newValue) {
+          this.currentTargetElement.value = newValue;
+        }
+      } else if (this.currentTargetElement) {
+        if (this.currentTargetElement.value !== allTranscript) {
+          this.currentTargetElement.value = allTranscript;
+        }
+      }
+    };
+
+    this.recognition.onerror = (event) => {
+      this.stopRecording();
+      voiceStatus.textContent = 'Erreur de reconnaissance: ' + event.error;
+    };
+
+    this.recognition.onend = () => {
+      if (this.isRecording) {
+        try {
+          this.recognition.start();
+        } catch (e) {
+          this.stopRecording();
+        }
+      }
+    };
+  }
+
+  startRecording(voiceButton, targetElement, fieldName) {
+    const voiceStatus = this.shadowRoot.getElementById('gissues-voice-status');
+    const voiceDuration = this.shadowRoot.getElementById('gissues-voice-duration');
+    const voiceStatusContainer = this.shadowRoot.getElementById('gissues-voice-status-container');
+    
+    if (!this.recognition) return;
+    
+    // Store current recording context
+    this.currentVoiceButton = voiceButton;
+    this.currentTargetElement = targetElement;
+    this.currentFieldName = fieldName;
+
+    try {
+      this.isRecording = true;
+      this.recordingStartTime = Date.now();
+      this.finalTranscript = '';
+      
+      // Update UI
+      voiceButton.className = 'gissues-voice-icon recording';
+      voiceButton.textContent = '⏹️';
+      voiceButton.title = 'Arrêter l\'enregistrement';
+      voiceStatusContainer.style.display = 'block';
+      voiceStatus.textContent = `Enregistrement ${fieldName === 'titre' ? 'du titre' : 'de la description'}...`;
+      
+      // Start duration timer
+      this.durationInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - this.recordingStartTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        voiceDuration.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }, 1000);
+      
+      // Start recognition
+      this.recognition.start();
+      
+    } catch (error) {
+      this.stopRecording();
+      voiceStatus.textContent = 'Erreur lors du démarrage de l\'enregistrement';
+    }
+  }
+
+  stopRecording() {
+    const voiceStatus = this.shadowRoot.getElementById('gissues-voice-status');
+    const voiceDuration = this.shadowRoot.getElementById('gissues-voice-duration');
+    const voiceStatusContainer = this.shadowRoot.getElementById('gissues-voice-status-container');
+    
+    if (!this.currentVoiceButton) return;
+    
+    this.isRecording = false;
+    
+    if (this.recognition) {
+      this.recognition.stop();
+    }
+    
+    if (this.durationInterval) {
+      clearInterval(this.durationInterval);
+      this.durationInterval = null;
+    }
+    this.currentVoiceButton.className = 'gissues-voice-icon processing';
+    this.currentVoiceButton.textContent = '⏳';
+    this.currentVoiceButton.title = 'Traitement en cours...';
+    voiceStatus.textContent = 'Finalisation de la transcription...';
+    
+    setTimeout(() => {
+      if (this.finalTranscript) {
+        if (this.currentFieldName === 'titre') {
+          const currentValue = this.currentTargetElement.value;
+          const urlPrefix = this.getUrlPath();
+          const transcription = this.finalTranscript.trim();
+          
+          if (currentValue.startsWith(urlPrefix)) {
+            this.currentTargetElement.value = urlPrefix + transcription;
+          } else {
+            this.currentTargetElement.value = currentValue + transcription;
+          }
+        } else {
+          this.currentTargetElement.value = this.finalTranscript.trim();
+        }
+        
+        voiceStatus.textContent = `Transcription ${this.currentFieldName === 'titre' ? 'du titre' : 'de la description'} terminée`;
+      } else {
+        voiceStatus.textContent = 'Aucun texte détecté';
+      }
+      
+      this.currentVoiceButton.className = 'gissues-voice-icon';
+      this.currentVoiceButton.textContent = '🎤';
+      this.currentVoiceButton.title = this.currentFieldName === 'titre' ? 'Dicter le titre' : 'Dicter la description';
+      
+      setTimeout(() => {
+        voiceStatusContainer.style.display = 'none';
+        voiceDuration.textContent = '0:00';
+      }, 2000);
+      
+      this.finalTranscript = '';
+      this.currentVoiceButton = null;
+      this.currentTargetElement = null;
+      this.currentFieldName = null;
+    }, 1000);
   }
 
   disablePageElements() {

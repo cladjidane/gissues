@@ -24,9 +24,12 @@ Puis suivre les étapes 3-5 ci-dessus.
 
 > ⚠️ **Important** : Chrome ne peut pas charger directement un fichier ZIP, il faut l'extraire !
 
-### ⚙️ Configuration
+### ⚙️ Configuration & Utilisation
 1. **Configuration** : Cliquer sur l'icône de l'extension → saisir token GitHub + dépôt
-2. **Utilisation** : Appuyer `Ctrl+Shift+B` sur n'importe quel site → remplir le formulaire → créer l'issue
+2. **Capture** : Appuyer `Alt+Shift+G` sur n'importe quel site
+3. **Formulaire** : Remplir titre et description
+4. **Dictée vocale** 🎤 : Cliquer sur les icônes micro à côté des champs pour dicter
+5. **Création** : Soumettre pour créer l'issue GitHub
 
 ## 🔧 Configuration
 
@@ -38,9 +41,41 @@ Puis suivre les étapes 3-5 ci-dessus.
 ### Format du Dépôt
 `propriétaire/nom-du-depot` (ex: `monentreprise/webapp`)
 
+## 🎤 Dictée Vocale
+
+La fonctionnalité de dictée vocale permet de rédiger les titres et descriptions à la voix, idéal pour expliquer des problèmes complexes de manière naturelle.
+
+### Utilisation
+1. **Ouvrir la modal** : Capturer l'écran avec `Alt+Shift+G`
+2. **Choisir le champ** : Cliquer sur l'icône 🎤 à côté du **titre** ou de la **description**
+3. **Autorisation** : Autoriser l'accès au microphone si demandé par le navigateur
+4. **Dicter** : Parlez en français - la transcription apparaît en temps réel dans le champ
+5. **Finaliser** : Cliquer à nouveau sur 🎤 pour arrêter et finaliser la transcription
+
+### Spécifications Techniques
+- **Technologie** : Web Speech API native de Chrome
+- **Langue** : Français (fr-FR) optimisé
+- **Transcription** : En temps réel avec aperçu instantané
+- **Durée** : Illimitée (reconnexion automatique)
+- **Compatibilité** : Chrome, Edge (navigateurs Chromium)
+- **Confidentialité** : Traitement local, aucune donnée envoyée vers des serveurs tiers
+- **Titre intelligent** : Préservation automatique du préfixe URL lors de la dictée
+
+### États des Icônes Micro
+- **🎤 Gris** : Prêt à enregistrer (état par défaut)
+- **🎤 Rouge pulsant** : Enregistrement en cours avec timer
+- **⏳ Bleu** : Traitement et finalisation de la transcription
+- **🎤 Gris** : Retour à l'état initial, texte transcrit dans le champ
+
+### Gestion d'Erreurs  
+- Détection automatique du support navigateur
+- Messages d'erreur explicites si microphone indisponible
+- Fallback gracieux vers saisie manuelle
+
 ## ✨ Fonctionnalités
 
-- **Captures d'écran en un clic** avec `Ctrl+Shift+B`
+- **Captures d'écran en un clic** avec `Alt+Shift+G`
+- **Dictée vocale** 🎤 : Icônes micro pour dicter titre et description
 - **Métadonnées automatiques** : URL, navigateur, résolution, erreurs console
 - **Intégration GitHub** : Création directe d'issues
 - **Mapping de domaines** : Sites différents → dépôts différents
@@ -82,9 +117,19 @@ Puis recharger l'extension dans Chrome.
 
 ## 🐛 Dépannage
 
+### Capture d'écran
 - **Pas de capture** : Fonctionne uniquement sur les sites normaux (pas chrome://)
-- **Erreur GitHub** : Vérifier le scope du token et les permissions du dépôt
 - **Modal manquante** : Actualiser la page et réessayer
+
+### Intégration GitHub  
+- **Erreur GitHub** : Vérifier le scope du token et les permissions du dépôt
+- **Issues non créées** : Vérifier que le dépôt existe et est accessible
+
+### Dictée Vocale 🎤
+- **Bouton grisé** : Navigateur non compatible (utiliser Chrome/Edge)
+- **Pas de transcription** : Autoriser l'accès au microphone dans les paramètres
+- **Transcription incorrecte** : Parler distinctement en français, éviter le bruit de fond
+- **Coupures fréquentes** : Vérifier la connexion internet (Web Speech API nécessite une connexion)
 
 ## 🚀 Prêt pour Chrome Web Store
 

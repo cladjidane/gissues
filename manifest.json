@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Gissues - Rapports de Bugs Visuels Simplifiés",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Prenez des captures d'écran et créez des issues GitHub instantanément. Parfait pour les développeurs, équipes QA et bêta-testeurs.",
   
   "permissions": [
