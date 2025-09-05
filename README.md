@@ -28,7 +28,7 @@ Puis suivre les étapes 3-5 ci-dessus.
 1. **Configuration** : Cliquer sur l'icône de l'extension → saisir token GitHub + dépôt
 2. **Capture** : Appuyer `Alt+Shift+G` sur n'importe quel site
 3. **Formulaire** : Remplir titre et description
-4. **Dictée vocale** 🎤 : Cliquer "Enregistrer" sous la description pour dicter à la voix
+4. **Dictée vocale** 🎤 : Cliquer sur les icônes micro à côté des champs pour dicter
 5. **Création** : Soumettre pour créer l'issue GitHub
 
 ## 🔧 Configuration
@@ -43,14 +43,14 @@ Puis suivre les étapes 3-5 ci-dessus.
 
 ## 🎤 Dictée Vocale
 
-La fonctionnalité de dictée vocale permet de rédiger la description des bugs à la voix, idéal pour expliquer des problèmes complexes de manière naturelle.
+La fonctionnalité de dictée vocale permet de rédiger les titres et descriptions à la voix, idéal pour expliquer des problèmes complexes de manière naturelle.
 
 ### Utilisation
 1. **Ouvrir la modal** : Capturer l'écran avec `Alt+Shift+G`
-2. **Localiser la section vocale** : Sous le champ "Description", cliquer sur la section "🎤 Dictée vocale"  
-3. **Enregistrer** : Cliquer "🔴 Enregistrer" et autoriser l'accès au microphone si demandé
-4. **Parler** : Dictez votre description en français - la transcription apparaît en temps réel
-5. **Arrêter** : Cliquer "⏹️ Arrêter" pour finaliser et pré-remplir le champ description
+2. **Choisir le champ** : Cliquer sur l'icône 🎤 à côté du **titre** ou de la **description**
+3. **Autorisation** : Autoriser l'accès au microphone si demandé par le navigateur
+4. **Dicter** : Parlez en français - la transcription apparaît en temps réel dans le champ
+5. **Finaliser** : Cliquer à nouveau sur 🎤 pour arrêter et finaliser la transcription
 
 ### Spécifications Techniques
 - **Technologie** : Web Speech API native de Chrome
@@ -59,12 +59,13 @@ La fonctionnalité de dictée vocale permet de rédiger la description des bugs 
 - **Durée** : Illimitée (reconnexion automatique)
 - **Compatibilité** : Chrome, Edge (navigateurs Chromium)
 - **Confidentialité** : Traitement local, aucune donnée envoyée vers des serveurs tiers
+- **Titre intelligent** : Préservation automatique du préfixe URL lors de la dictée
 
-### États de l'Interface
-- **🔴 Enregistrer** : Prêt à démarrer l'enregistrement
-- **⏹️ Arrêter** (rouge pulsant) : Enregistrement en cours avec timer
-- **⏳ Traitement** : Finalisation de la transcription
-- **✅ Terminé** : Texte transcrit dans le champ description
+### États des Icônes Micro
+- **🎤 Gris** : Prêt à enregistrer (état par défaut)
+- **🎤 Rouge pulsant** : Enregistrement en cours avec timer
+- **⏳ Bleu** : Traitement et finalisation de la transcription
+- **🎤 Gris** : Retour à l'état initial, texte transcrit dans le champ
 
 ### Gestion d'Erreurs  
 - Détection automatique du support navigateur
@@ -74,7 +75,7 @@ La fonctionnalité de dictée vocale permet de rédiger la description des bugs 
 ## ✨ Fonctionnalités
 
 - **Captures d'écran en un clic** avec `Alt+Shift+G`
-- **Dictée vocale** 🎤 : Enregistrez votre description à la voix
+- **Dictée vocale** 🎤 : Icônes micro pour dicter titre et description
 - **Métadonnées automatiques** : URL, navigateur, résolution, erreurs console
 - **Intégration GitHub** : Création directe d'issues
 - **Mapping de domaines** : Sites différents → dépôts différents
