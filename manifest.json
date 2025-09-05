@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Gissues - Visual Bug Reports Made Simple",
+  "version": "1.0.0",
+  "description": "Take screenshots and create GitHub issues instantly. Perfect for developers, QA teams, and beta testers to streamline visual bug reporting.",
+  
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  
+  "host_permissions": [
+    "https://api.github.com/*"
+  ],
+  
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Gissues"
+  },
+  
+  "options_page": "src/options/options.html",
+  
+  "commands": {
+    "take-screenshot": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+B"
+      },
+      "description": "Take screenshot and report bug"
+    }
+  }
+}

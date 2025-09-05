@@ -1,0 +1,19 @@
+# Chrome Extension Development
+icons/*.png
+*.zip
+
+# Development files
+node_modules/
+.DS_Store
+*.log
+
+# Private files
+CLAUDE-private.md
+project-prd-private.md
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
