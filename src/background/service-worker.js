@@ -1,5 +1,7 @@
 chrome.commands.onCommand.addListener((command) => {
+  console.log('🎹 Gissues: Commande reçue:', command);
   if (command === 'take-screenshot') {
+    console.log('📸 Gissues: Déclenchement de la capture d\'écran');
     takeScreenshotAndShowModal();
   }
 });

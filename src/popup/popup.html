@@ -163,34 +163,34 @@
       <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #6366F1, #8B5CF6); border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px;">🐛</div>
       <h1 style="margin: 0; font-size: 20px; font-weight: 700;">Gissues</h1>
     </div>
-    <p>Visual Bug Reports Made Simple</p>
+    <p>Rapports de Bugs Visuels Simplifiés</p>
   </div>
 
   <form id="settingsForm">
     <div class="form-group">
-      <label for="githubToken">GitHub Personal Access Token</label>
+      <label for="githubToken">Token d'Accès Personnel GitHub</label>
       <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
       <div class="help-text">
         <a href="https://github.com/settings/tokens/new?scopes=repo&description=Gissues%20Extension" target="_blank">
-          Create a new token
-        </a> with 'repo' scope
+          Créer un nouveau token
+        </a> avec le scope 'repo'
       </div>
     </div>
 
     <div class="form-group">
-      <label for="defaultRepo">Default Repository</label>
-      <input type="text" id="defaultRepo" placeholder="owner/repository-name">
+      <label for="defaultRepo">Dépôt par Défaut</label>
+      <input type="text" id="defaultRepo" placeholder="proprietaire/nom-du-depot">
       <div class="help-text">
-        Format: username/repo-name or org/repo-name
+        Format : utilisateur/nom-repo ou organisation/nom-repo
       </div>
     </div>
 
     <div class="button-group">
       <button type="button" id="testConnection" class="btn-secondary">
-        Test Connection
+        Tester la Connexion
       </button>
       <button type="submit" id="saveSettings" class="btn-primary">
-        Save Settings
+        Sauvegarder
       </button>
     </div>
   </form>
@@ -198,24 +198,24 @@
   <div id="status" class="status" style="display: none;"></div>
 
   <div class="shortcut">
-    <div style="font-size: 14px; margin-bottom: 8px;">Quick Screenshot</div>
+    <div style="font-size: 14px; margin-bottom: 8px;">Capture Rapide</div>
     <div>
       <span class="shortcut-key">Ctrl</span> + 
       <span class="shortcut-key">Shift</span> + 
       <span class="shortcut-key">B</span>
     </div>
     <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
-      Take screenshot and report bug on any website
+      Prendre une capture et signaler un bug sur n'importe quel site
     </div>
   </div>
 
   <div class="quick-action">
     <button type="button" id="takeScreenshotNow" class="btn-primary" style="width: 100%;">
-      📸 Take Screenshot Now
+      📸 Prendre Capture Maintenant
     </button>
     <div style="text-align: center; margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
       <a href="https://github.com/cladjidane/gissues" target="_blank" style="color: #6b7280; text-decoration: none; font-size: 12px;">
-        ⭐ Star on GitHub
+        ⭐ Star sur GitHub
       </a>
       <span id="version-info" style="color: #9ca3af; font-size: 10px; font-family: monospace;"></span>
     </div>

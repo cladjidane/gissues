@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Gissues - Visual Bug Reports Made Simple",
+  "name": "Gissues - Rapports de Bugs Visuels Simplifiés",
   "version": "1.0.0",
-  "description": "Take screenshots and create GitHub issues instantly. Perfect for developers, QA teams, and beta testers to streamline visual bug reporting.",
+  "description": "Prenez des captures d'écran et créez des issues GitHub instantanément. Parfait pour les développeurs, équipes QA et bêta-testeurs.",
   
   "permissions": [
     "activeTab",
@@ -38,7 +38,7 @@
       "suggested_key": {
         "default": "Ctrl+Shift+B"
       },
-      "description": "Take screenshot and report bug"
+      "description": "Prendre une capture d'écran et signaler un bug"
     }
   }
 }

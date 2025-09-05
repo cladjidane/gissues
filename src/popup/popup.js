@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         defaultRepoInput.value = settings.defaultRepo;
       }
     } catch (error) {
-      showStatus('Error loading settings: ' + error.message, 'error');
+      showStatus('Erreur de chargement des paramètres : ' + error.message, 'error');
     }
   }
 
@@ -37,35 +37,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     const repo = defaultRepoInput.value.trim();
     
     if (!token) {
-      showStatus('Please enter a GitHub token', 'error');
+      showStatus('Veuillez saisir un token GitHub', 'error');
       return;
     }
     
     if (!repo || !repo.includes('/')) {
-      showStatus('Please enter a valid repository (owner/repo-name)', 'error');
+      showStatus('Veuillez saisir un dépôt valide (propriétaire/nom-depot)', 'error');
       return;
     }
 
     try {
       saveSettingsBtn.disabled = true;
-      saveSettingsBtn.textContent = 'Saving...';
+      saveSettingsBtn.textContent = 'Sauvegarde...';
       
       await chrome.storage.sync.set({
         githubToken: token,
         defaultRepo: repo
       });
       
-      showStatus('Settings saved successfully!', 'success');
+      showStatus('Paramètres sauvegardés avec succès !', 'success');
       
       setTimeout(() => {
         hideStatus();
       }, 2000);
       
     } catch (error) {
-      showStatus('Error saving settings: ' + error.message, 'error');
+      showStatus('Erreur de sauvegarde : ' + error.message, 'error');
     } finally {
       saveSettingsBtn.disabled = false;
-      saveSettingsBtn.textContent = 'Save Settings';
+      saveSettingsBtn.textContent = 'Sauvegarder';
     }
   }
 
@@ -74,18 +74,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const repo = defaultRepoInput.value.trim();
     
     if (!token) {
-      showStatus('Please enter a GitHub token', 'error');
+      showStatus('Veuillez saisir un token GitHub', 'error');
       return;
     }
     
     if (!repo || !repo.includes('/')) {
-      showStatus('Please enter a valid repository', 'error');
+      showStatus('Veuillez saisir un dépôt valide', 'error');
       return;
     }
 
     try {
       testConnectionBtn.disabled = true;
-      testConnectionBtn.textContent = 'Testing...';
+      testConnectionBtn.textContent = 'Test...';
       
       const [owner, repoName] = repo.split('/');
       
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (response.ok) {
         const repoData = await response.json();
-        showStatus(`✓ Connected to ${repoData.full_name}`, 'success');
+        showStatus(`✓ Connecté à ${repoData.full_name}`, 'success');
         
         const issuesResponse = await fetch(`https://api.github.com/repos/${owner}/${repoName}/issues`, {
           method: 'GET',
@@ -109,18 +109,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         
         if (issuesResponse.ok) {
-          showStatus(`✓ Connected to ${repoData.full_name} with issue creation permissions`, 'success');
+          showStatus(`✓ Connecté à ${repoData.full_name} avec permissions de création d'issues`, 'success');
         } else {
-          showStatus(`⚠ Connected to repository but no issue creation permissions`, 'error');
+          showStatus(`⚠ Connecté au dépôt mais sans permissions de création d'issues`, 'error');
         }
       } else {
         const errorData = await response.json();
-        let errorMessage = 'Connection failed';
+        let errorMessage = 'Échec de la connexion';
         
         if (response.status === 401) {
-          errorMessage = 'Invalid GitHub token';
+          errorMessage = 'Token GitHub invalide';
         } else if (response.status === 404) {
-          errorMessage = 'Repository not found or no access';
+          errorMessage = 'Dépôt introuvable ou pas d\'accès';
         } else if (errorData.message) {
           errorMessage = errorData.message;
         }
@@ -129,10 +129,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       
     } catch (error) {
-      showStatus('Connection error: ' + error.message, 'error');
+      showStatus('Erreur de connexion : ' + error.message, 'error');
     } finally {
       testConnectionBtn.disabled = false;
-      testConnectionBtn.textContent = 'Test Connection';
+      testConnectionBtn.textContent = 'Tester la Connexion';
     }
   }
 
@@ -142,21 +142,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       const repo = defaultRepoInput.value.trim();
       
       if (!token || !repo) {
-        showStatus('Please configure GitHub settings first', 'error');
+        showStatus('Veuillez configurer GitHub d\'abord', 'error');
         return;
       }
       
       takeScreenshotBtn.disabled = true;
-      takeScreenshotBtn.textContent = '📸 Taking Screenshot...';
+      takeScreenshotBtn.textContent = '📸 Capture en cours...';
       
       await chrome.runtime.sendMessage({ action: 'takeScreenshot' });
       
       window.close();
       
     } catch (error) {
-      showStatus('Error taking screenshot: ' + error.message, 'error');
+      showStatus('Erreur de capture : ' + error.message, 'error');
       takeScreenshotBtn.disabled = false;
-      takeScreenshotBtn.textContent = '📸 Take Screenshot Now';
+      takeScreenshotBtn.textContent = '📸 Prendre Capture Maintenant';
     }
   }
 
