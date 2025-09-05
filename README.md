@@ -1,102 +1,127 @@
-# 🐛 Gissues - Visual Bug Reports Made Simple
+# 🐛 Gissues - Rapports de Bugs Visuels Simplifiés
 
-Chrome extension for instant bug reporting. Take screenshots and create GitHub issues with one keyboard shortcut.
+Extension Chrome pour signaler des bugs instantanément. Prenez des captures d'écran et créez des issues GitHub avec un seul raccourci clavier.
 
-## ⚡ Quick Start
+## ⚡ Démarrage Rapide
 
-### Installation
-1. **Download**: Click "Code" → "Download ZIP" sur GitHub
-2. **Extract**: Dézippe le fichier dans un dossier (ex: `Downloads/gissues/`)
-3. **Chrome**: Va sur `chrome://extensions/`
-4. **Developer mode**: Active le mode développeur (toggle en haut à droite)
-5. **Load**: Clique "Load unpacked" → sélectionne le dossier `gissues/`
+### 📥 Installation
 
-### Configuration
-1. **Setup**: Click extension icon → enter GitHub token + repository
-2. **Use**: Press `Ctrl+Shift+B` on any website → fill form → create issue
+**Option 1 : Téléchargement ZIP (Simple)**
+1. **Télécharger** : Cliquez "Code" → "Download ZIP" sur GitHub
+2. **Dézipper** : Extraire le fichier dans un dossier (ex: `Téléchargements/gissues/`)
+3. **Chrome** : Aller sur `chrome://extensions/`
+4. **Mode développeur** : Activer le mode développeur (toggle en haut à droite)
+5. **Charger** : Cliquer "Charger l'extension non empaquetée" → sélectionner le dossier `gissues/`
 
-> ⚠️ **Important** : Il faut dézipper le fichier ! Chrome ne peut pas charger directement un fichier ZIP.
+**Option 2 : Clone Git (Recommandé pour les développeurs)**
+```bash
+git clone https://github.com/cladjidane/gissues.git
+cd gissues
+```
+Puis suivre les étapes 3-5 ci-dessus.
 
-## 🔧 Setup
+> 💡 **Avantage du clone** : Mises à jour faciles avec `git pull` au lieu de retélécharger le ZIP à chaque fois.
 
-### GitHub Token
-1. Go to [GitHub Token Settings](https://github.com/settings/tokens/new?scopes=repo&description=Gissues%20Extension)
-2. Create token with `repo` scope
-3. Paste in extension popup
+> ⚠️ **Important** : Chrome ne peut pas charger directement un fichier ZIP, il faut l'extraire !
 
-### Repository Format
-`owner/repository-name` (e.g., `mycompany/webapp`)
+### ⚙️ Configuration
+1. **Configuration** : Cliquer sur l'icône de l'extension → saisir token GitHub + dépôt
+2. **Utilisation** : Appuyer `Ctrl+Shift+B` sur n'importe quel site → remplir le formulaire → créer l'issue
 
-## ✨ Features
+## 🔧 Configuration
 
-- **One-click screenshots** with `Ctrl+Shift+B`
-- **Auto-metadata**: URL, browser, resolution, console errors
-- **GitHub integration**: Direct issue creation
-- **Domain mapping**: Different sites → different repos
-- **Clean UI**: Shadow DOM modal, no site interference
+### Token GitHub
+1. Aller sur [Paramètres Token GitHub](https://github.com/settings/tokens/new?scopes=repo&description=Gissues%20Extension)
+2. Créer un token avec le scope `repo`
+3. Coller dans le popup de l'extension
 
-## 📁 Project Structure
+### Format du Dépôt
+`propriétaire/nom-du-depot` (ex: `monentreprise/webapp`)
+
+## ✨ Fonctionnalités
+
+- **Captures d'écran en un clic** avec `Ctrl+Shift+B`
+- **Métadonnées automatiques** : URL, navigateur, résolution, erreurs console
+- **Intégration GitHub** : Création directe d'issues
+- **Mapping de domaines** : Sites différents → dépôts différents
+- **Interface propre** : Modal Shadow DOM, aucune interférence
+
+## 📁 Structure du Projet
 
 ```
 gissues/
-├── manifest.json           # Extension config
+├── manifest.json           # Configuration extension
 ├── src/
 │   ├── background/service-worker.js
 │   ├── content/content.js
 │   ├── popup/popup.html + popup.js
 │   └── options/options.html + options.js
-└── auto-generate-icons.html   # Icon generator
+└── auto-generate-icons.html   # Générateur d'icônes
 ```
 
-## 🎨 Icons Setup
+## 🎨 Configuration des Icônes
 
-1. Open `auto-generate-icons.html`
-2. Icons auto-download
-3. Move to `/icons/` folder
-4. Copy generated code to `manifest.json`
+1. Ouvrir `auto-generate-icons.html`
+2. Les icônes se téléchargent automatiquement
+3. Déplacer dans le dossier `/icons/`
+4. Copier le code généré dans `manifest.json`
 
-## 🐛 Troubleshooting
+## 🔄 Mises à Jour
 
-- **No screenshot**: Only works on regular websites (not chrome:// pages)
-- **GitHub error**: Check token scope and repository permissions
-- **Modal missing**: Refresh page and try again
+### Méthode ZIP
+1. Retélécharger le ZIP depuis GitHub
+2. Remplacer l'ancien dossier
+3. Recharger l'extension dans Chrome
 
-## 🚀 Chrome Web Store Ready
+### Méthode Clone Git (Recommandée)
+```bash
+cd gissues
+git pull origin main
+```
+Puis recharger l'extension dans Chrome.
 
-- Professional icons included
-- Privacy policy provided
-- Manifest V3 compliant
-- No external dependencies
+## 🐛 Dépannage
 
-## 🚀 Releases
+- **Pas de capture** : Fonctionne uniquement sur les sites normaux (pas chrome://)
+- **Erreur GitHub** : Vérifier le scope du token et les permissions du dépôt
+- **Modal manquante** : Actualiser la page et réessayer
 
-To create a new release:
+## 🚀 Prêt pour Chrome Web Store
+
+- Icônes professionnelles incluses
+- Politique de confidentialité fournie
+- Conforme Manifest V3
+- Aucune dépendance externe
+
+## 🚀 Gestion des Versions
+
+Pour créer une nouvelle version :
 
 ```bash
-# Patch version (1.0.0 → 1.0.1)
+# Version patch (1.0.0 → 1.0.1)
 ./release.sh patch
 
-# Minor version (1.0.0 → 1.1.0)  
+# Version mineure (1.0.0 → 1.1.0)  
 ./release.sh minor
 
-# Major version (1.0.0 → 2.0.0)
+# Version majeure (1.0.0 → 2.0.0)
 ./release.sh major
 ```
 
-The script automatically:
-- Updates `manifest.json` version
-- Creates git tag with release notes
-- Pushes to GitHub with tags
-- Opens GitHub releases page
+Le script automatise :
+- Mise à jour de la version dans `manifest.json`
+- Création du tag git avec notes de version
+- Push vers GitHub avec tags
+- Ouverture de la page GitHub Releases
 
-## 🤝 Contributing
+## 🤝 Contribution
 
-Issues and pull requests welcome! Please check existing issues first.
+Les issues et pull requests sont les bienvenues ! Vérifiez d'abord les issues existantes.
 
-## 📄 License
+## 📄 Licence
 
-MIT License
+Licence MIT
 
 ---
 
-**Built with**: Vanilla JS, Manifest V3, GitHub API, Tailwind CSS
+**Construit avec** : Vanilla JS, Manifest V3, GitHub API, Tailwind CSS
