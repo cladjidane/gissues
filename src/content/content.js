@@ -1,18 +1,14 @@
 class GissuesModal {
   constructor() {
-    console.log('🏗️ GissuesModal constructor called v1.1.0');
     this.isVisible = false;
     this.currentScreenshot = null;
     this.shadowRoot = null;
     this.init();
-    console.log('🏗️ GissuesModal constructor finished');
   }
 
   init() {
-    console.log('🔄 init() called');
     this.createShadowDOM();
     this.setupEventListeners();
-    console.log('🔄 init() finished');
   }
 
   createShadowDOM() {
@@ -88,88 +84,6 @@ class GissuesModal {
         .gissues-input.error { border-color: #ef4444; }
         .gissues-textarea { resize: vertical; min-height: 80px; }
         
-        /* Voice Input Styles */
-        .gissues-voice-container {
-          margin-top: 12px;
-          padding: 12px;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 8px;
-        }
-        
-        .gissues-voice-header {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 12px;
-          font-size: 14px;
-          font-weight: 500;
-          color: #475569;
-        }
-        
-        .gissues-voice-controls {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        
-        .gissues-voice-btn {
-          padding: 8px 16px;
-          border: none;
-          border-radius: 6px;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-        
-        .gissues-voice-btn.record {
-          background: #ef4444;
-          color: white;
-        }
-        
-        .gissues-voice-btn.record:hover {
-          background: #dc2626;
-        }
-        
-        .gissues-voice-btn.recording {
-          background: #dc2626;
-          animation: pulse 1.5s ease-in-out infinite;
-        }
-        
-        .gissues-voice-btn.stop {
-          background: #6b7280;
-          color: white;
-        }
-        
-        .gissues-voice-btn.processing {
-          background: #3b82f6;
-          color: white;
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-        
-        @keyframes pulse {
-          0% { opacity: 1; }
-          50% { opacity: 0.5; }
-          100% { opacity: 1; }
-        }
-        
-        .gissues-voice-status {
-          font-size: 12px;
-          color: #64748b;
-          font-style: italic;
-        }
-        
-        .gissues-voice-duration {
-          font-size: 12px;
-          color: #3b82f6;
-          font-weight: 500;
-        }
-        
         .gissues-voice-status-container {
           padding: 8px 0;
           text-align: center;
@@ -182,10 +96,6 @@ class GissuesModal {
           justify-content: space-between;
           align-items: center;
           gap: 12px;
-        }
-        
-        .gissues-voice-label {
-          font-size: 14px;
         }
         
         .gissues-input-with-voice {
@@ -233,6 +143,12 @@ class GissuesModal {
           color: #2563eb;
           cursor: not-allowed;
           opacity: 0.7;
+        }
+        
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
         }
         .gissues-metadata { 
           background: #f9fafb; padding: 12px; border-radius: 6px; 
@@ -373,7 +289,6 @@ class GissuesModal {
   }
 
   setupEventListeners() {
-    console.log('🔧 setupEventListeners called');
     const closeBtn = this.shadowRoot.getElementById('gissues-close');
     const cancelBtn = this.shadowRoot.getElementById('gissues-cancel');
     const submitBtn = this.shadowRoot.getElementById('gissues-submit');
@@ -397,10 +312,8 @@ class GissuesModal {
       submitBtn.disabled = !titleInput.value.trim();
     });
 
-    // Voice input functionality
     this.setupVoiceInput();
 
-    // Focus trapping and keyboard handling
     this.shadowRoot.addEventListener('keydown', (e) => {
       if (!this.isVisible) return;
       
@@ -594,8 +507,6 @@ class GissuesModal {
   }
 
   setupVoiceInput() {
-    console.log('🎤 Setting up inline voice icons...');
-    
     const voiceTitleBtn = this.shadowRoot.getElementById('gissues-voice-title');
     const voiceDescriptionBtn = this.shadowRoot.getElementById('gissues-voice-description');
     const voiceStatus = this.shadowRoot.getElementById('gissues-voice-status');
@@ -605,25 +516,13 @@ class GissuesModal {
     const titleInput = this.shadowRoot.getElementById('gissues-title');
     const descriptionTextarea = this.shadowRoot.getElementById('gissues-description');
     
-    console.log('Voice elements found:', {
-      voiceTitleBtn: !!voiceTitleBtn,
-      voiceDescriptionBtn: !!voiceDescriptionBtn,
-      voiceStatus: !!voiceStatus,
-      voiceDuration: !!voiceDuration,
-      titleInput: !!titleInput,
-      descriptionTextarea: !!descriptionTextarea
-    });
-    
     if (!voiceTitleBtn || !voiceDescriptionBtn || !voiceStatus || !voiceDuration || !titleInput || !descriptionTextarea) {
-      console.error('❌ Voice input elements not found');
       return;
     }
     
-    // Track current recording state
     this.currentVoiceButton = null;
     this.currentTargetElement = null;
 
-    // Check Web Speech API support
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       voiceStatus.textContent = 'Reconnaissance vocale non supportée dans ce navigateur';
       voiceTitleBtn.disabled = true;
@@ -631,7 +530,6 @@ class GissuesModal {
       return;
     }
 
-    // Initialize speech recognition
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     this.recognition = new SpeechRecognition();
     
@@ -639,17 +537,12 @@ class GissuesModal {
     this.recognition.interimResults = true;
     this.recognition.lang = 'fr-FR';
     
-    // State variables
     this.isRecording = false;
     this.recordingStartTime = null;
     this.durationInterval = null;
     this.finalTranscript = '';
     
-    // Event listeners for both voice buttons
-    console.log('🎤 Adding click listeners to voice icons');
-    
     voiceTitleBtn.addEventListener('click', (e) => {
-      console.log('🎤 Title voice icon clicked!');
       e.preventDefault();
       e.stopPropagation();
       
@@ -661,7 +554,6 @@ class GissuesModal {
     });
 
     voiceDescriptionBtn.addEventListener('click', (e) => {
-      console.log('🎤 Description voice icon clicked!');
       e.preventDefault();
       e.stopPropagation();
       
@@ -672,10 +564,7 @@ class GissuesModal {
       }
     });
 
-    // Speech recognition events
-    this.recognition.onstart = () => {
-      console.log('Voice recognition started');
-    };
+    this.recognition.onstart = () => {};
 
     this.recognition.onresult = (event) => {
       let interimTranscript = '';
@@ -692,18 +581,15 @@ class GissuesModal {
 
       this.finalTranscript = finalTranscript;
       
-      // Update target field with current transcription
       const allTranscript = finalTranscript + interimTranscript;
       
       if (this.currentTargetElement && this.currentFieldName === 'titre') {
-        // For title, preserve URL prefix
         const urlPrefix = this.getUrlPath();
         const newValue = urlPrefix + allTranscript;
         if (this.currentTargetElement.value !== newValue) {
           this.currentTargetElement.value = newValue;
         }
       } else if (this.currentTargetElement) {
-        // For description, replace entirely  
         if (this.currentTargetElement.value !== allTranscript) {
           this.currentTargetElement.value = allTranscript;
         }
@@ -711,18 +597,15 @@ class GissuesModal {
     };
 
     this.recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
       this.stopRecording();
       voiceStatus.textContent = 'Erreur de reconnaissance: ' + event.error;
     };
 
     this.recognition.onend = () => {
       if (this.isRecording) {
-        // Restart if still in recording mode (for continuous recording)
         try {
           this.recognition.start();
         } catch (e) {
-          console.log('Recognition restart failed:', e);
           this.stopRecording();
         }
       }
@@ -765,7 +648,6 @@ class GissuesModal {
       this.recognition.start();
       
     } catch (error) {
-      console.error('Error starting recording:', error);
       this.stopRecording();
       voiceStatus.textContent = 'Erreur lors du démarrage de l\'enregistrement';
     }
@@ -780,41 +662,32 @@ class GissuesModal {
     
     this.isRecording = false;
     
-    // Stop recognition
     if (this.recognition) {
       this.recognition.stop();
     }
     
-    // Clear duration timer
     if (this.durationInterval) {
       clearInterval(this.durationInterval);
       this.durationInterval = null;
     }
-    
-    // Update UI
     this.currentVoiceButton.className = 'gissues-voice-icon processing';
     this.currentVoiceButton.textContent = '⏳';
     this.currentVoiceButton.title = 'Traitement en cours...';
     voiceStatus.textContent = 'Finalisation de la transcription...';
     
-    // Finalize transcription after a short delay
     setTimeout(() => {
       if (this.finalTranscript) {
         if (this.currentFieldName === 'titre') {
-          // For title, preserve the URL prefix and append transcription
           const currentValue = this.currentTargetElement.value;
           const urlPrefix = this.getUrlPath();
           const transcription = this.finalTranscript.trim();
           
-          // Check if current value starts with URL prefix
           if (currentValue.startsWith(urlPrefix)) {
             this.currentTargetElement.value = urlPrefix + transcription;
           } else {
-            // Fallback: just append
             this.currentTargetElement.value = currentValue + transcription;
           }
         } else {
-          // For description, replace entirely
           this.currentTargetElement.value = this.finalTranscript.trim();
         }
         
@@ -823,18 +696,15 @@ class GissuesModal {
         voiceStatus.textContent = 'Aucun texte détecté';
       }
       
-      // Reset button
       this.currentVoiceButton.className = 'gissues-voice-icon';
       this.currentVoiceButton.textContent = '🎤';
       this.currentVoiceButton.title = this.currentFieldName === 'titre' ? 'Dicter le titre' : 'Dicter la description';
       
-      // Hide status after success
       setTimeout(() => {
         voiceStatusContainer.style.display = 'none';
         voiceDuration.textContent = '0:00';
       }, 2000);
       
-      // Reset for next recording
       this.finalTranscript = '';
       this.currentVoiceButton = null;
       this.currentTargetElement = null;
