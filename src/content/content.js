@@ -693,11 +693,20 @@ class GissuesModal {
       this.finalTranscript = finalTranscript;
       
       // Update target field with current transcription
-      const currentText = this.currentTargetElement.value;
-      const newText = finalTranscript + interimTranscript;
+      const allTranscript = finalTranscript + interimTranscript;
       
-      if (newText.trim() !== currentText.trim()) {
-        this.currentTargetElement.value = finalTranscript + interimTranscript;
+      if (this.currentTargetElement && this.currentFieldName === 'titre') {
+        // For title, preserve URL prefix
+        const urlPrefix = this.getUrlPath();
+        const newValue = urlPrefix + allTranscript;
+        if (this.currentTargetElement.value !== newValue) {
+          this.currentTargetElement.value = newValue;
+        }
+      } else if (this.currentTargetElement) {
+        // For description, replace entirely  
+        if (this.currentTargetElement.value !== allTranscript) {
+          this.currentTargetElement.value = allTranscript;
+        }
       }
     };
 
@@ -791,7 +800,24 @@ class GissuesModal {
     // Finalize transcription after a short delay
     setTimeout(() => {
       if (this.finalTranscript) {
-        this.currentTargetElement.value = this.finalTranscript.trim();
+        if (this.currentFieldName === 'titre') {
+          // For title, preserve the URL prefix and append transcription
+          const currentValue = this.currentTargetElement.value;
+          const urlPrefix = this.getUrlPath();
+          const transcription = this.finalTranscript.trim();
+          
+          // Check if current value starts with URL prefix
+          if (currentValue.startsWith(urlPrefix)) {
+            this.currentTargetElement.value = urlPrefix + transcription;
+          } else {
+            // Fallback: just append
+            this.currentTargetElement.value = currentValue + transcription;
+          }
+        } else {
+          // For description, replace entirely
+          this.currentTargetElement.value = this.finalTranscript.trim();
+        }
+        
         voiceStatus.textContent = `Transcription ${this.currentFieldName === 'titre' ? 'du titre' : 'de la description'} terminée`;
       } else {
         voiceStatus.textContent = 'Aucun texte détecté';
