@@ -187,18 +187,61 @@ class GissuesModal {
         .gissues-voice-label {
           font-size: 14px;
         }
+        
+        .gissues-input-with-voice {
+          position: relative;
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+        }
+        
+        .gissues-input-with-voice .gissues-input,
+        .gissues-input-with-voice .gissues-textarea {
+          flex: 1;
+        }
+        
+        .gissues-voice-icon {
+          padding: 6px 8px;
+          border: 1px solid #d1d5db;
+          border-radius: 4px;
+          background: #f9fafb;
+          color: #6b7280;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-size: 14px;
+          line-height: 1;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+        
+        .gissues-voice-icon:hover {
+          background: #f3f4f6;
+          border-color: #9ca3af;
+          color: #374151;
+        }
+        
+        .gissues-voice-icon.recording {
+          background: #fef2f2;
+          border-color: #fca5a5;
+          color: #dc2626;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .gissues-voice-icon.processing {
+          background: #eff6ff;
+          border-color: #93c5fd;
+          color: #2563eb;
+          cursor: not-allowed;
+          opacity: 0.7;
+        }
         .gissues-metadata { 
           background: #f9fafb; padding: 12px; border-radius: 6px; 
           font-size: 12px; color: #6b7280; margin-bottom: 16px;
         }
         .gissues-metadata strong { color: #374151; }
         .gissues-actions { 
-          display: flex; justify-content: space-between; align-items: center; gap: 12px; 
+          display: flex; justify-content: flex-end; gap: 12px; 
           padding-top: 16px; border-top: 1px solid #e5e7eb;
-        }
-        
-        .gissues-actions > div:last-child {
-          display: flex; gap: 12px;
         }
         .gissues-button { 
           padding: 10px 16px; border: none; border-radius: 6px; 
@@ -264,24 +307,34 @@ class GissuesModal {
               <label for="gissues-title" class="gissues-label">
                 Titre du Bug *
               </label>
-              <input 
-                type="text" 
-                id="gissues-title" 
-                class="gissues-input"
-                placeholder="Description brève du problème"
-                required
-              >
+              <div class="gissues-input-with-voice">
+                <input 
+                  type="text" 
+                  id="gissues-title" 
+                  class="gissues-input"
+                  placeholder="Description brève du problème"
+                  required
+                >
+                <button id="gissues-voice-title" class="gissues-voice-icon" type="button" title="Dicter le titre">
+                  🎤
+                </button>
+              </div>
             </div>
             
             <div class="gissues-form-group">
               <label for="gissues-description" class="gissues-label">
                 Description (optionnelle)
               </label>
-              <textarea 
-                id="gissues-description" 
-                class="gissues-textarea"
-                placeholder="Détails supplémentaires sur ce que vous attendiez vs ce que vous voyez..."
-              ></textarea>
+              <div class="gissues-input-with-voice">
+                <textarea 
+                  id="gissues-description" 
+                  class="gissues-textarea"
+                  placeholder="Détails supplémentaires sur ce que vous attendiez vs ce que vous voyez..."
+                ></textarea>
+                <button id="gissues-voice-description" class="gissues-voice-icon" type="button" title="Dicter la description">
+                  🎤
+                </button>
+              </div>
             </div>
             
             <div id="gissues-metadata" class="gissues-metadata">
@@ -290,17 +343,12 @@ class GissuesModal {
             </div>
             
             <div class="gissues-actions">
-              <button id="gissues-voice-btn" class="gissues-voice-btn record" type="button">
-                🎤 <span id="gissues-voice-label">Dicter la description</span>
+              <button id="gissues-cancel" class="gissues-button secondary">
+                Annuler
               </button>
-              <div>
-                <button id="gissues-cancel" class="gissues-button secondary">
-                  Annuler
-                </button>
-                <button id="gissues-submit" class="gissues-button primary">
-                  Créer l'Issue
-                </button>
-              </div>
+              <button id="gissues-submit" class="gissues-button primary">
+                Créer l'Issue
+              </button>
             </div>
             
             <div id="gissues-voice-status-container" class="gissues-voice-status-container" style="display: none;">
@@ -546,10 +594,10 @@ class GissuesModal {
   }
 
   setupVoiceInput() {
-    console.log('🎤 Setting up contextual voice input...');
+    console.log('🎤 Setting up inline voice icons...');
     
-    const voiceBtn = this.shadowRoot.getElementById('gissues-voice-btn');
-    const voiceLabel = this.shadowRoot.getElementById('gissues-voice-label');
+    const voiceTitleBtn = this.shadowRoot.getElementById('gissues-voice-title');
+    const voiceDescriptionBtn = this.shadowRoot.getElementById('gissues-voice-description');
     const voiceStatus = this.shadowRoot.getElementById('gissues-voice-status');
     const voiceDuration = this.shadowRoot.getElementById('gissues-voice-duration');
     const voiceStatusContainer = this.shadowRoot.getElementById('gissues-voice-status-container');
@@ -558,53 +606,28 @@ class GissuesModal {
     const descriptionTextarea = this.shadowRoot.getElementById('gissues-description');
     
     console.log('Voice elements found:', {
-      voiceBtn: !!voiceBtn,
-      voiceLabel: !!voiceLabel,
+      voiceTitleBtn: !!voiceTitleBtn,
+      voiceDescriptionBtn: !!voiceDescriptionBtn,
       voiceStatus: !!voiceStatus,
       voiceDuration: !!voiceDuration,
       titleInput: !!titleInput,
       descriptionTextarea: !!descriptionTextarea
     });
     
-    if (!voiceBtn || !voiceLabel || !voiceStatus || !voiceDuration || !titleInput || !descriptionTextarea) {
+    if (!voiceTitleBtn || !voiceDescriptionBtn || !voiceStatus || !voiceDuration || !titleInput || !descriptionTextarea) {
       console.error('❌ Voice input elements not found');
       return;
     }
     
-    // Track currently focused field
-    this.focusedField = 'description';
-    this.currentTargetElement = descriptionTextarea; // Default to description
-
-    // Focus tracking for contextual transcription
-    const updateVoiceLabel = () => {
-      if (this.focusedField === 'title') {
-        voiceLabel.textContent = 'Dicter le titre';
-        this.currentTargetElement = titleInput;
-      } else {
-        voiceLabel.textContent = 'Dicter la description';
-        this.currentTargetElement = descriptionTextarea;
-      }
-    };
-
-    titleInput.addEventListener('focus', () => {
-      this.focusedField = 'title';
-      updateVoiceLabel();
-      console.log('🎤 Focus: title');
-    });
-
-    descriptionTextarea.addEventListener('focus', () => {
-      this.focusedField = 'description';
-      updateVoiceLabel();
-      console.log('🎤 Focus: description');
-    });
-
-    // Initialize label
-    updateVoiceLabel();
+    // Track current recording state
+    this.currentVoiceButton = null;
+    this.currentTargetElement = null;
 
     // Check Web Speech API support
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       voiceStatus.textContent = 'Reconnaissance vocale non supportée dans ce navigateur';
-      voiceBtn.disabled = true;
+      voiceTitleBtn.disabled = true;
+      voiceDescriptionBtn.disabled = true;
       return;
     }
 
@@ -622,17 +645,30 @@ class GissuesModal {
     this.durationInterval = null;
     this.finalTranscript = '';
     
-    // Event listeners
-    console.log('🎤 Adding click listener to voice button');
-    voiceBtn.addEventListener('click', (e) => {
-      console.log('🎤 Voice button clicked!', { isRecording: this.isRecording });
+    // Event listeners for both voice buttons
+    console.log('🎤 Adding click listeners to voice icons');
+    
+    voiceTitleBtn.addEventListener('click', (e) => {
+      console.log('🎤 Title voice icon clicked!');
       e.preventDefault();
       e.stopPropagation();
       
       if (this.isRecording) {
         this.stopRecording();
       } else {
-        this.startRecording();
+        this.startRecording(voiceTitleBtn, titleInput, 'titre');
+      }
+    });
+
+    voiceDescriptionBtn.addEventListener('click', (e) => {
+      console.log('🎤 Description voice icon clicked!');
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (this.isRecording) {
+        this.stopRecording();
+      } else {
+        this.startRecording(voiceDescriptionBtn, descriptionTextarea, 'description');
       }
     });
 
@@ -684,14 +720,17 @@ class GissuesModal {
     };
   }
 
-  startRecording() {
-    const voiceBtn = this.shadowRoot.getElementById('gissues-voice-btn');
-    const voiceLabel = this.shadowRoot.getElementById('gissues-voice-label');
+  startRecording(voiceButton, targetElement, fieldName) {
     const voiceStatus = this.shadowRoot.getElementById('gissues-voice-status');
     const voiceDuration = this.shadowRoot.getElementById('gissues-voice-duration');
     const voiceStatusContainer = this.shadowRoot.getElementById('gissues-voice-status-container');
     
     if (!this.recognition) return;
+    
+    // Store current recording context
+    this.currentVoiceButton = voiceButton;
+    this.currentTargetElement = targetElement;
+    this.currentFieldName = fieldName;
 
     try {
       this.isRecording = true;
@@ -699,11 +738,11 @@ class GissuesModal {
       this.finalTranscript = '';
       
       // Update UI
-      voiceBtn.className = 'gissues-voice-btn recording';
-      voiceLabel.textContent = 'Arrêter l\'enregistrement';
-      voiceBtn.innerHTML = '⏹️ <span id="gissues-voice-label">Arrêter l\'enregistrement</span>';
+      voiceButton.className = 'gissues-voice-icon recording';
+      voiceButton.textContent = '⏹️';
+      voiceButton.title = 'Arrêter l\'enregistrement';
       voiceStatusContainer.style.display = 'block';
-      voiceStatus.textContent = `Enregistrement ${this.focusedField === 'title' ? 'du titre' : 'de la description'}...`;
+      voiceStatus.textContent = `Enregistrement ${fieldName === 'titre' ? 'du titre' : 'de la description'}...`;
       
       // Start duration timer
       this.durationInterval = setInterval(() => {
@@ -724,11 +763,11 @@ class GissuesModal {
   }
 
   stopRecording() {
-    const voiceBtn = this.shadowRoot.getElementById('gissues-voice-btn');
-    const voiceLabel = this.shadowRoot.getElementById('gissues-voice-label');
     const voiceStatus = this.shadowRoot.getElementById('gissues-voice-status');
     const voiceDuration = this.shadowRoot.getElementById('gissues-voice-duration');
     const voiceStatusContainer = this.shadowRoot.getElementById('gissues-voice-status-container');
+    
+    if (!this.currentVoiceButton) return;
     
     this.isRecording = false;
     
@@ -744,23 +783,24 @@ class GissuesModal {
     }
     
     // Update UI
-    voiceBtn.className = 'gissues-voice-btn processing';
-    voiceBtn.innerHTML = '⏳ <span id="gissues-voice-label">Traitement...</span>';
+    this.currentVoiceButton.className = 'gissues-voice-icon processing';
+    this.currentVoiceButton.textContent = '⏳';
+    this.currentVoiceButton.title = 'Traitement en cours...';
     voiceStatus.textContent = 'Finalisation de la transcription...';
     
     // Finalize transcription after a short delay
     setTimeout(() => {
       if (this.finalTranscript) {
         this.currentTargetElement.value = this.finalTranscript.trim();
-        voiceStatus.textContent = `Transcription ${this.focusedField === 'title' ? 'du titre' : 'de la description'} terminée`;
+        voiceStatus.textContent = `Transcription ${this.currentFieldName === 'titre' ? 'du titre' : 'de la description'} terminée`;
       } else {
         voiceStatus.textContent = 'Aucun texte détecté';
       }
       
       // Reset button
-      voiceBtn.className = 'gissues-voice-btn record';
-      const labelText = this.focusedField === 'title' ? 'Dicter le titre' : 'Dicter la description';
-      voiceBtn.innerHTML = `🎤 <span id="gissues-voice-label">${labelText}</span>`;
+      this.currentVoiceButton.className = 'gissues-voice-icon';
+      this.currentVoiceButton.textContent = '🎤';
+      this.currentVoiceButton.title = this.currentFieldName === 'titre' ? 'Dicter le titre' : 'Dicter la description';
       
       // Hide status after success
       setTimeout(() => {
@@ -770,6 +810,9 @@ class GissuesModal {
       
       // Reset for next recording
       this.finalTranscript = '';
+      this.currentVoiceButton = null;
+      this.currentTargetElement = null;
+      this.currentFieldName = null;
     }, 1000);
   }
 
