@@ -1,6 +1,7 @@
 # Chrome Extension Development
 icons/*.png
 *.zip
+screenshots/
 
 # Development files
 node_modules/
