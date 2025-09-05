@@ -6,13 +6,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const saveSettingsBtn = document.getElementById('saveSettings');
   const takeScreenshotBtn = document.getElementById('takeScreenshotNow');
   const statusDiv = document.getElementById('status');
+  const extensionRefreshBtn = document.getElementById('extension-refresh');
 
   await loadSettings();
   await loadVersionInfo();
+  updateShortcutDisplay();
 
   form.addEventListener('submit', handleSaveSettings);
   testConnectionBtn.addEventListener('click', handleTestConnection);
   takeScreenshotBtn.addEventListener('click', handleTakeScreenshot);
+  extensionRefreshBtn.addEventListener('click', handleExtensionRefresh);
 
   async function loadSettings() {
     try {
@@ -176,12 +179,51 @@ document.addEventListener('DOMContentLoaded', async () => {
       const version = manifest.version;
       const versionSpan = document.getElementById('version-info');
       
+      console.log('🔍 Debug version info:', { 
+        manifest: !!manifest, 
+        version, 
+        versionSpan: !!versionSpan 
+      });
+      
       if (versionSpan) {
         versionSpan.textContent = `v${version}`;
         versionSpan.title = `Gissues version ${version}`;
+      } else {
+        console.warn('Element version-info not found');
       }
     } catch (error) {
       console.error('Error loading version info:', error);
     }
+  }
+
+  function updateShortcutDisplay() {
+    const shortcutDisplay = document.getElementById('shortcut-display');
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    
+    if (shortcutDisplay && isMac) {
+      shortcutDisplay.innerHTML = `
+        <span class="shortcut-key">⌥</span> + 
+        <span class="shortcut-key">Shift</span> + 
+        <span class="shortcut-key">G</span>
+      `;
+    }
+  }
+
+  function handleExtensionRefresh(e) {
+    e.preventDefault();
+    
+    // Affiche un indicateur de rechargement
+    const refreshBtn = document.getElementById('extension-refresh');
+    const originalText = refreshBtn.innerHTML;
+    refreshBtn.innerHTML = '🔄 Reloading...';
+    refreshBtn.style.color = '#3b82f6';
+    
+    // Envoie le message pour recharger l'extension
+    chrome.runtime.sendMessage({ action: 'reloadExtension' });
+    
+    // Ferme le popup après un court délai
+    setTimeout(() => {
+      window.close();
+    }, 500);
   }
 });

@@ -185,6 +185,7 @@
       </div>
     </div>
 
+
     <div class="button-group">
       <button type="button" id="testConnection" class="btn-secondary">
         Tester la Connexion
@@ -199,10 +200,10 @@
 
   <div class="shortcut">
     <div style="font-size: 14px; margin-bottom: 8px;">Capture Rapide</div>
-    <div>
-      <span class="shortcut-key">Ctrl</span> + 
+    <div id="shortcut-display">
+      <span class="shortcut-key">Alt</span> + 
       <span class="shortcut-key">Shift</span> + 
-      <span class="shortcut-key">B</span>
+      <span class="shortcut-key">G</span>
     </div>
     <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
       Prendre une capture et signaler un bug sur n'importe quel site
@@ -216,6 +217,9 @@
     <div style="text-align: center; margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
       <a href="https://github.com/cladjidane/gissues" target="_blank" style="color: #6b7280; text-decoration: none; font-size: 12px;">
         ⭐ Star sur GitHub
+      </a>
+      <a href="#" id="extension-refresh" style="color: #9ca3af; text-decoration: none; font-size: 10px;" title="Recharger l'extension">
+        🔄 Reload
       </a>
       <span id="version-info" style="color: #9ca3af; font-size: 10px; font-family: monospace;"></span>
     </div>

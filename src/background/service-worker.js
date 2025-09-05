@@ -17,6 +17,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true; // Keep message channel open for async response
   }
+
+  if (request.action === 'openExtensionSettings') {
+    chrome.tabs.create({
+      url: 'chrome://extensions/?id=' + chrome.runtime.id
+    });
+  }
+
+  if (request.action === 'reloadExtension') {
+    console.log('🔄 Gissues: Rechargement de l\'extension...');
+    chrome.runtime.reload();
+  }
 });
 
 async function takeScreenshotAndShowModal() {
@@ -28,6 +39,25 @@ async function takeScreenshotAndShowModal() {
       return;
     }
 
+    // Check if it's a restricted URL
+    if (isRestrictedUrl(tab.url)) {
+      console.warn('🚫 Gissues: URL restreinte détectée:', tab.url);
+      
+      let message = '❌ Impossible de faire une capture sur cette page.\n\n';
+      
+      if (tab.url === 'chrome://newtab/' || tab.url.includes('newtab')) {
+        message += 'La page d\'accueil Chrome (nouvel onglet) est protégée.\n\n' +
+                   '💡 Solution: Naviguez vers n\'importe quel site web et utilisez Gissues.';
+      } else {
+        message += 'Les pages chrome://, extensions et pages système sont protégées.\n\n' +
+                   '💡 Solution: Ouvrez un site web normal (google.com, github.com, etc.).';
+      }
+      
+      alert(message);
+      return;
+    }
+
+    console.log('📸 Gissues: Capture de', tab.url);
     const dataUrl = await chrome.tabs.captureVisibleTab(null, {
       format: 'png',
       quality: 90
@@ -42,23 +72,57 @@ async function takeScreenshotAndShowModal() {
   } catch (error) {
     console.error('Error taking screenshot:', error);
     
-    try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: showError,
-        args: ['Failed to take screenshot. Please try again.']
-      });
-    } catch (e) {
-      console.error('Failed to show error message:', e);
+    // Show user-friendly error message
+    if (error.message.includes('chrome://')) {
+      alert('❌ Impossible de faire une capture sur cette page.\n\n' +
+            'Les pages Chrome internes (chrome://) sont protégées.\n\n' +
+            '💡 Naviguez vers un site web pour utiliser Gissues.');
+    } else if (error.message.includes('Cannot access')) {
+      alert('❌ Accès refusé à cette page.\n\n' +
+            'Certaines pages sont protégées par le navigateur.\n\n' +
+            '💡 Essayez sur un site web normal.');
+    } else {
+      alert('❌ Erreur lors de la capture d\'écran.\n\n' + error.message);
     }
   }
 }
 
-function showFeedbackModal(screenshotDataUrl) {
-  if (window.gissuesModal) {
-    window.gissuesModal.show(screenshotDataUrl);
+function isRestrictedUrl(url) {
+  if (!url) return true;
+  
+  const restrictedPrefixes = [
+    'chrome://',
+    'chrome-extension://',
+    'moz-extension://',
+    'edge://',
+    'about:',
+    'file://',
+    'data:',
+    'javascript:'
+  ];
+  
+  // Allow Chrome's new tab page (it has a special chrome-search:// URL internally 
+  // but appears as chrome://newtab/ or similar)
+  if (url === 'chrome://newtab/' || url.startsWith('chrome-search://')) {
+    return false; // Allow new tab page
   }
+  
+  return restrictedPrefixes.some(prefix => url.startsWith(prefix));
+}
+
+
+function showFeedbackModal(screenshotDataUrl) {
+  console.log('📋 Gissues: Tentative d\'affichage de la modal');
+  
+  // Use existing modal or create new one
+  if (!window.gissuesModal) {
+    console.log('✨ Gissues: Création nouvelle modal');
+    window.gissuesModal = new GissuesModal();
+  } else {
+    console.log('🔄 Gissues: Utilisation modal existante');
+  }
+  
+  window.gissuesModal.show(screenshotDataUrl);
 }
 
 function showError(message) {

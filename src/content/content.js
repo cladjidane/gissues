@@ -14,21 +14,34 @@ class GissuesModal {
   createShadowDOM() {
     this.container = document.createElement('div');
     this.container.id = 'gissues-modal-container';
+    this.container.style.cssText = `
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 2147483647 !important;
+      pointer-events: none !important;
+    `;
     this.shadowRoot = this.container.attachShadow({ mode: 'closed' });
     
     this.shadowRoot.innerHTML = `
       <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         .gissues-overlay { 
-          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-          background: rgba(0, 0, 0, 0.5); z-index: 999999; 
+          position: fixed !important; top: 0 !important; left: 0 !important; 
+          width: 100vw !important; height: 100vh !important; 
+          background: rgba(0, 0, 0, 0.5) !important; z-index: 2147483647 !important; 
           display: none; align-items: center; justify-content: center;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          pointer-events: auto !important;
         }
         .gissues-overlay.show { display: flex; }
         .gissues-modal { 
-          background: white; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); 
+          background: white !important; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); 
           max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; margin: 20px;
+          position: relative !important; z-index: 2147483647 !important;
+          pointer-events: auto !important;
         }
         .gissues-header { 
           display: flex; justify-content: space-between; align-items: center; 
@@ -62,6 +75,7 @@ class GissuesModal {
         .gissues-input, .gissues-textarea { 
           width: 100%; padding: 8px 12px; border: 2px solid #e5e7eb; 
           border-radius: 6px; font-size: 14px; font-family: inherit;
+          pointer-events: auto !important; position: relative !important;
         }
         .gissues-input:focus, .gissues-textarea:focus { 
           outline: none; border-color: #3b82f6; 
@@ -111,6 +125,16 @@ class GissuesModal {
           width: 64px; height: 64px; background: #d1fae5; 
           border-radius: 50%; display: flex; align-items: center; justify-content: center;
           margin: 0 auto 16px; font-size: 24px; color: #059669;
+        }
+        .gissues-footer {
+          text-align: center; padding: 8px 16px; border-top: 1px solid #f3f4f6;
+          font-size: 11px; color: #9ca3af;
+        }
+        .gissues-footer a {
+          color: #6b7280; text-decoration: none;
+        }
+        .gissues-footer a:hover {
+          color: #374151; text-decoration: underline;
         }
       </style>
       <div id="gissues-overlay" class="gissues-overlay">
@@ -171,6 +195,10 @@ class GissuesModal {
               <div>Création de l'issue GitHub...</div>
             </div>
           </div>
+          
+          <div class="gissues-footer">
+            <a href="#" id="gissues-settings" title="Ouvrir les paramètres de l'extension">⚙️ Settings</a>
+          </div>
         </div>
       </div>
     `;
@@ -182,10 +210,15 @@ class GissuesModal {
     const submitBtn = this.shadowRoot.getElementById('gissues-submit');
     const overlay = this.shadowRoot.getElementById('gissues-overlay');
     const titleInput = this.shadowRoot.getElementById('gissues-title');
+    const settingsBtn = this.shadowRoot.getElementById('gissues-settings');
 
     closeBtn.addEventListener('click', () => this.hide());
     cancelBtn.addEventListener('click', () => this.hide());
     submitBtn.addEventListener('click', () => this.submitReport());
+    settingsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.openExtensionSettings();
+    });
     
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) this.hide();
@@ -195,15 +228,73 @@ class GissuesModal {
       submitBtn.disabled = !titleInput.value.trim();
     });
 
-    document.addEventListener('keydown', (e) => {
-      if (this.isVisible && e.key === 'Escape') {
+    // Focus trapping and keyboard handling
+    this.shadowRoot.addEventListener('keydown', (e) => {
+      if (!this.isVisible) return;
+      
+      if (e.key === 'Escape') {
         this.hide();
+        return;
+      }
+      
+      // Focus trapping with Tab
+      if (e.key === 'Tab') {
+        this.handleTabKey(e);
       }
     });
+
+    // Prevent page interactions when modal is open - AGGRESSIVE MODE
+    const eventTypes = ['keydown', 'keyup', 'click', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'focus', 'blur', 'input', 'change'];
+    
+    eventTypes.forEach(eventType => {
+      document.addEventListener(eventType, (e) => {
+        if (this.isVisible && !this.container.contains(e.target)) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          return false;
+        }
+      }, true);
+    });
+  }
+
+  handleTabKey(e) {
+    const focusableElements = this.shadowRoot.querySelectorAll(
+      'input, textarea, button:not(:disabled), [tabindex]:not([tabindex="-1"])'
+    );
+    const focusableArray = Array.from(focusableElements);
+    const currentIndex = focusableArray.indexOf(this.shadowRoot.activeElement);
+    
+    if (e.shiftKey) {
+      // Shift+Tab - go backwards
+      if (currentIndex <= 0) {
+        focusableArray[focusableArray.length - 1].focus();
+      } else {
+        focusableArray[currentIndex - 1].focus();
+      }
+    } else {
+      // Tab - go forwards
+      if (currentIndex >= focusableArray.length - 1) {
+        focusableArray[0].focus();
+      } else {
+        focusableArray[currentIndex + 1].focus();
+      }
+    }
+    
+    e.preventDefault();
   }
 
   async show(screenshotDataUrl) {
     this.currentScreenshot = screenshotDataUrl;
+    
+    // Store currently focused element to restore later
+    this.previousFocus = document.activeElement;
+    
+    // Recreate the container and shadow DOM if needed
+    if (!this.container || !this.container.parentNode) {
+      this.createShadowDOM();
+      this.setupEventListeners();
+    }
     
     if (!document.body.contains(this.container)) {
       document.body.appendChild(this.container);
@@ -214,24 +305,191 @@ class GissuesModal {
     const titleInput = this.shadowRoot.getElementById('gissues-title');
     const submitBtn = this.shadowRoot.getElementById('gissues-submit');
 
+    if (!screenshot || !overlay || !titleInput || !submitBtn) {
+      console.error('❌ Gissues: Éléments DOM manquants, recréation...');
+      this.createShadowDOM();
+      this.setupEventListeners();
+      return this.show(screenshotDataUrl); // Retry
+    }
+
     screenshot.src = screenshotDataUrl;
-    titleInput.value = '';
+    
+    // Generate URL prefix for title
+    const urlPath = this.getUrlPath();
+    titleInput.value = urlPath;
+    titleInput.placeholder = `${urlPath}Décrivez le problème ici`;
+    
     this.shadowRoot.getElementById('gissues-description').value = '';
-    submitBtn.disabled = true;
+    submitBtn.disabled = false; // Enable since we have a default title
 
     await this.updateTechnicalInfo();
 
+    // Disable ALL page elements
+    this.disablePageElements();
+    
+    // Block page scrolling and interactions
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.pointerEvents = 'none';
+    document.documentElement.style.pointerEvents = 'none';
+    
+    // Force container to be visible and interactive
+    this.container.style.pointerEvents = 'auto';
+    this.container.style.display = 'block';
+    
     overlay.classList.add('show');
     this.isVisible = true;
 
-    setTimeout(() => titleInput.focus(), 100);
+    // Focus the title input after modal is visible
+    setTimeout(() => {
+      titleInput.focus();
+      // Place cursor at the end of the prefix
+      titleInput.setSelectionRange(titleInput.value.length, titleInput.value.length);
+    }, 150);
   }
 
   hide() {
+    console.log('🚪 Gissues: Fermeture de la modal');
+    
+    if (!this.shadowRoot) return;
+    
     const overlay = this.shadowRoot.getElementById('gissues-overlay');
-    overlay.classList.remove('show');
+    if (overlay) {
+      overlay.classList.remove('show');
+    }
+    
     this.isVisible = false;
     this.currentScreenshot = null;
+    
+    // Restore ALL page elements
+    this.restorePageElements();
+    
+    // Restore page scrolling and interactions
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    document.body.style.pointerEvents = '';
+    document.documentElement.style.pointerEvents = '';
+    
+    if (this.container) {
+      this.container.style.pointerEvents = 'none';
+      this.container.style.display = 'none';
+      
+      // Keep container in DOM but hidden instead of removing it
+      // This prevents the null reference issues
+    }
+    
+    // Restore focus to previous element
+    if (this.previousFocus && typeof this.previousFocus.focus === 'function') {
+      setTimeout(() => {
+        try {
+          this.previousFocus.focus();
+        } catch (e) {
+          // Element might not be focusable anymore, ignore
+        }
+      }, 100);
+    }
+  }
+
+  openExtensionSettings() {
+    // Ouvre la page de gestion des extensions Chrome
+    chrome.runtime.sendMessage({ 
+      action: 'openExtensionSettings' 
+    });
+  }
+
+
+  setupModalEventListeners() {
+    const closeBtn = this.shadowRoot.getElementById('gissues-close');
+    const cancelBtn = this.shadowRoot.getElementById('gissues-cancel');
+    const submitBtn = this.shadowRoot.getElementById('gissues-submit');
+    const settingsBtn = this.shadowRoot.getElementById('gissues-settings');
+    const titleInput = this.shadowRoot.getElementById('gissues-title');
+
+    if (closeBtn) closeBtn.addEventListener('click', () => this.hide());
+    if (cancelBtn) cancelBtn.addEventListener('click', () => this.hide());
+    if (submitBtn) submitBtn.addEventListener('click', () => this.submitReport());
+    if (settingsBtn) settingsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.openExtensionSettings();
+    });
+    
+    if (titleInput) {
+      titleInput.addEventListener('input', () => {
+        if (submitBtn) submitBtn.disabled = !titleInput.value.trim();
+      });
+    }
+  }
+
+  disablePageElements() {
+    // Store original inert states and disable all page elements
+    this.originalInertStates = new Map();
+    
+    // Get all elements except our container
+    const allElements = document.body.querySelectorAll('*:not(#gissues-modal-container):not(#gissues-modal-container *)');
+    
+    allElements.forEach(element => {
+      // Skip if it's our container or inside it
+      if (element.id === 'gissues-modal-container' || element.closest('#gissues-modal-container')) {
+        return;
+      }
+      
+      // Store original inert state
+      this.originalInertStates.set(element, element.inert);
+      
+      // Make element inert (disables all interactions)
+      element.inert = true;
+      
+      // Also disable pointer events as backup
+      if (!element.style.pointerEvents) {
+        element.style.pointerEvents = 'none';
+        element.setAttribute('data-gissues-disabled', 'true');
+      }
+    });
+    
+    // Also disable body level events
+    document.body.setAttribute('data-gissues-modal-active', 'true');
+  }
+
+  restorePageElements() {
+    if (!this.originalInertStates) return;
+    
+    // Restore all elements
+    this.originalInertStates.forEach((originalInert, element) => {
+      element.inert = originalInert;
+      
+      if (element.getAttribute('data-gissues-disabled')) {
+        element.style.pointerEvents = '';
+        element.removeAttribute('data-gissues-disabled');
+      }
+    });
+    
+    // Clear stored states
+    this.originalInertStates.clear();
+    this.originalInertStates = null;
+    
+    // Remove body attribute
+    document.body.removeAttribute('data-gissues-modal-active');
+  }
+
+  getUrlPath() {
+    const url = new URL(window.location.href);
+    let path = url.pathname;
+    
+    // Add hash if it exists (for SPA routes) but ignore query parameters
+    if (url.hash && url.hash !== '#') {
+      // Only keep the hash path part, not query params in hash
+      const hashPath = url.hash.split('?')[0];
+      if (hashPath !== '#') {
+        path += hashPath;
+      }
+    }
+    
+    // If path is just '/', use the hostname instead
+    if (path === '/') {
+      path = url.hostname;
+    }
+    
+    return `[${path}] `;
   }
 
   async updateTechnicalInfo() {
@@ -376,8 +634,13 @@ class GissuesModal {
   }
 }
 
+console.log('🚀 Gissues: Content script chargé');
+
 if (!window.gissuesModal) {
+  console.log('✨ Gissues: Création de GissuesModal');
   window.gissuesModal = new GissuesModal();
+} else {
+  console.log('♻️ Gissues: GissuesModal existe déjà');
 }
 
 window.gissuesConsoleErrors = [];
